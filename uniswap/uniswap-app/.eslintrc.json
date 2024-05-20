@@ -1,5 +1,3 @@
 {
-  "rules": {
-    "eslint-disable": "off"
-  }
+  "extends": ["next/babel", "next/core-web-vitals"]
 }

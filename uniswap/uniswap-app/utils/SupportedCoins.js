@@ -1,5 +1,4 @@
-export const ETH = 'Eth';
-export const falopaCoinA = 'falopaCoinA';
-export const falopaCoinB = 'falopaCoinB';
-export const falopaCoinC = 'falopaCoinC';
+export const MTB24 = 'MTB24';
+export const WETH = 'WETH';
+
 export const DEFAULT_VALUE = 'Select a token';

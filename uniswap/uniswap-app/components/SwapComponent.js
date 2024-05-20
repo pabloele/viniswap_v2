@@ -1,22 +1,24 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  hasValidAllowance,
-  increaseAllowance,
-  swapEthToToken,
-  swapTokenToEth,
-  swapTokenToToken,
+  getTokenPrice,
+  increaseTokenAllowance,
+  increaseWethAllowance,
+  swapTokensToWeth,
+  swapWethToTokens,
+  tokenAllowance,
+  wethAllowance,
 } from '../utils/queries';
 
 import { CogIcon, ArrowSmDownIcon } from '@heroicons/react/outline';
 import SwapField from './SwapField';
 import TransactionStatus from './TransactionStatus';
 import toast, { Toaster } from 'react-hot-toast';
-import { DEFAULT_VALUE, ETH } from '../utils/SupportedCoins';
+import { DEFAULT_VALUE, WETH, MTB24 } from '../utils/SupportedCoins';
 import { toEth, toWei } from '../utils/ether-utils';
 import { useAccount } from 'wagmi';
 
 const SwapComponent = () => {
-  const [srcToken, setSrcToken] = useState(ETH);
+  const [srcToken, setSrcToken] = useState(WETH);
   const [destToken, setDestToken] = useState(DEFAULT_VALUE);
 
   const [inputValue, setInputValue] = useState();
@@ -60,17 +62,15 @@ const SwapComponent = () => {
   const notifySuccess = () => toast.success('Transaction completed.');
   const { address } = useAccount();
 
-  // Functions for functionality
   const performSwap = async () => {
     setTxPending(true);
     let receipt;
 
-    if (srcToken === ETH && destToken !== ETH) {
-      receipt = await swapEthToToken(destToken, inputValue);
-    } else if (srcToken !== ETH && destToken === ETH) {
-      receipt = await swapTokenToEth(srcToken, inputValue);
-    } else {
-      receipt = await swapTokenToToken(srcToken, destToken, inputValue);
+    if (srcToken === WETH && destToken !== WETH) {
+      console.log('hola', outputValue);
+      receipt = await swapWethToTokens(outputValue);
+    } else if (srcToken !== WETH && destToken === WETH) {
+      receipt = await swapTokensToWeth(inputValue);
     }
 
     setTxPending(false);
@@ -82,21 +82,30 @@ const SwapComponent = () => {
   };
 
   const handleSwap = async () => {
-    if (srcToken === ETH && destToken !== ETH) {
-      performSwap();
-    } else {
+    if (srcToken === WETH && destToken !== WETH) {
       setTxPending(true);
-      const result = await hasValidAllowance(
-        // '0xed697701e8b9c39cb8a5dac98355d035fb5e6389',
-        address,
-        srcToken,
-        inputValue
-      );
-      // const result = await hasValidAllowance(address, srcToken, inputValue);
+      const allowance = await wethAllowance();
+      console.log(allowance, inputValue);
+      if (allowance < inputValue) {
+        const receipt = await increaseWethAllowance(inputValue * 1.2);
+        console.log(receipt);
+      }
+
       setTxPending(false);
 
-      if (result) performSwap();
-      else handleInsufficientAllowance();
+      performSwap();
+    } else if (srcToken !== WETH && destToken === WETH) {
+      setTxPending(true);
+      const allowance = await tokenAllowance();
+      console.log(allowance, inputValue);
+      if (allowance < inputValue) {
+        const receipt = await increaseTokenAllowance(inputValue);
+        console.log(receipt);
+      }
+
+      setTxPending(false);
+
+      performSwap();
     }
   };
 
@@ -115,39 +124,50 @@ const SwapComponent = () => {
   }, [inputValue, outputValue, address]);
 
   useEffect(() => {
-    if (
-      document.activeElement !== outputValueRef.current &&
-      document.activeElement.ariaLabel !== 'srcToken' &&
-      !isReversed.current
-    )
-      populateOutputValue(inputValue);
+    const fetchPriceAndPopulateOutput = async () => {
+      const price = await getTokenPrice();
+      console.log(price);
+      if (
+        document.activeElement !== outputValueRef.current &&
+        document.activeElement.ariaLabel !== 'srcToken' &&
+        !isReversed.current
+      )
+        populateOutputValue(price);
 
-    setSrcTokenComp(<SwapField obj={srcTokenObj} ref={inputValueRef} />);
+      setSrcTokenComp(<SwapField obj={srcTokenObj} ref={inputValueRef} />);
 
-    if (inputValue?.length === 0) setOutputValue('');
+      if (inputValue?.length === 0) setOutputValue('');
+    };
+    fetchPriceAndPopulateOutput();
   }, [inputValue, destToken]);
 
   useEffect(() => {
-    if (
-      document.activeElement !== inputValueRef.current &&
-      document.activeElement.ariaLabel !== 'destToken' &&
-      !isReversed.current
-    )
-      populateInputValue(outputValue);
+    const fetchPriceAndPopulateinput = async () => {
+      const price = await getTokenPrice();
+      console.log(price);
+      if (
+        document.activeElement !== inputValueRef.current &&
+        document.activeElement.ariaLabel !== 'destToken' &&
+        !isReversed.current
+      )
+        populateInputValue(price);
 
-    setDestTokenComp(<SwapField obj={destTokenObj} ref={outputValueRef} />);
+      setDestTokenComp(<SwapField obj={destTokenObj} ref={outputValueRef} />);
 
-    if (outputValue?.length === 0) setInputValue('');
+      if (outputValue?.length === 0) setInputValue('');
 
-    // Resetting the isReversed value if its set
-    if (isReversed.current) isReversed.current = false;
+      // Resetting the isReversed value if its set
+      if (isReversed.current) isReversed.current = false;
+    };
+
+    fetchPriceAndPopulateinput();
   }, [outputValue, srcToken]);
 
   return (
     <div className="bg-zinc-900 w-[35%] p-4 px-6 rounded-xl">
       <div className="flex items-center justify-between py-4 px-1">
         <p>Swap</p>
-        <CogIcon className="h-6" />
+        {/* <CogIcon className="h-6" /> */}
       </div>
       <div className="relative bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
         {srcTokenComp}
@@ -207,7 +227,7 @@ const SwapComponent = () => {
     return className;
   }
 
-  function populateOutputValue() {
+  function populateOutputValue(price) {
     if (
       destToken === DEFAULT_VALUE ||
       srcToken === DEFAULT_VALUE ||
@@ -216,12 +236,14 @@ const SwapComponent = () => {
       return;
 
     try {
-      if (srcToken !== ETH && destToken !== ETH) setOutputValue(inputValue);
-      else if (srcToken === ETH && destToken !== ETH) {
-        const outValue = toEth(toWei(inputValue), 14);
+      if (srcToken !== WETH && destToken !== WETH) setOutputValue(inputValue);
+      else if (srcToken === WETH && destToken !== WETH) {
+        const outValue = inputValue / price;
         setOutputValue(outValue);
-      } else if (srcToken !== ETH && destToken === ETH) {
-        const outValue = toEth(toWei(inputValue, 14));
+      } else if (srcToken !== WETH && destToken === WETH) {
+        console.log('HOLA', price, inputValue);
+        // const outValue = toEth(toWei(inputValue * price, 14));
+        const outValue = inputValue * price;
         setOutputValue(outValue);
       }
     } catch (error) {
@@ -229,7 +251,7 @@ const SwapComponent = () => {
     }
   }
 
-  function populateInputValue() {
+  function populateInputValue(price) {
     if (
       destToken === DEFAULT_VALUE ||
       srcToken === DEFAULT_VALUE ||
@@ -238,13 +260,13 @@ const SwapComponent = () => {
       return;
 
     try {
-      if (srcToken !== ETH && destToken !== ETH) setInputValue(outputValue);
-      else if (srcToken === ETH && destToken !== ETH) {
-        const outValue = toEth(toWei(outputValue, 14));
-        setInputValue(outValue);
+      if (srcToken !== WETH && destToken !== WETH) setInputValue(outputValue);
+      else if (srcToken === WETH && destToken !== WETH) {
+        // const outValue = toEth(toWei(outputValue, 14));
+        setInputValue(outputValue * price);
       } else if (srcToken !== ETH && destToken === ETH) {
-        const outValue = toEth(toWei(outputValue), 14);
-        setInputValue(outValue);
+        // const outValue = toEth(toWei(outputValue), 14);
+        setInputValue(outputValue / price);
       }
     } catch (error) {
       setInputValue('0');

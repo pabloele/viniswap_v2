@@ -1,20 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
 import { Dropdown } from '@nextui-org/react';
-import {
-  falopaCoinA,
-  falopaCoinB,
-  falopaCoinC,
-  DEFAULT_VALUE,
-  ETH,
-} from '../utils/SupportedCoins';
+import { WETH, MTB24, DEFAULT_VALUE } from '../utils/SupportedCoins';
 
 const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
   const menu = [
-    { key: ETH, name: ETH },
-    { key: falopaCoinA, name: falopaCoinA },
-    { key: falopaCoinB, name: falopaCoinB },
-    { key: falopaCoinC, name: falopaCoinC },
+    { key: WETH, name: WETH },
+    { key: MTB24, name: MTB24 },
   ];
 
   const [selectedItem, setSelectedItem] = useState();

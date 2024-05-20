@@ -4,59 +4,60 @@ import TransactionStatus from './TransactionStatus';
 import toast, { Toaster } from 'react-hot-toast';
 
 import { ClipboardIcon, ClipboardCheckIcon } from '@heroicons/react/outline';
-import { getTokenBalance, getTokenAddress } from '../utils/queries';
+// import { getTokenBalance, getTokenAddress } from '../utils/queries';
 
-const TokenBalance = ({ name, walletAddress }) => {
-  const [balance, setBalance] = useState('-');
-  const [tokenAddress, setTokenAddress] = useState('-');
-  const [copyIcon, setCopyIcon] = useState({ icon: ClipboardIcon });
-  const [txPending, setTxPending] = useState(false);
+const TokenBalance = ({ tokenContract, walletAddress }) => {
+  // const [balance, setBalance] = useState('-');
+  // const [tokenAddress, setTokenAddress] = useState('-');
+  // const [copyIcon, setCopyIcon] = useState({ icon: ClipboardIcon });
+  // const [txPending, setTxPending] = useState(false);
 
-  const notifyError = (msg) => toast.error(msg, { duration: 6000 });
-  const notifySuccess = (msg) => toast.success('Transaction completed');
+  // const notifyError = (msg) => toast.error(msg, { duration: 6000 });
+  // const notifySuccess = (msg) => toast.success('Transaction completed');
 
-  useEffect(() => {
-    if (name && walletAddress) {
-      fetchTokenBalance();
-      fetchTokenAddress();
-    } else {
-      setBalance('-');
-    }
-  }, [name, walletAddress]);
+  // useEffect(() => {
+  //   if (name && walletAddress) {
+  //     fetchTokenBalance();
+  //     fetchTokenAddress();
+  //   } else {
+  //     setBalance('-');
+  //   }
+  // }, [name, walletAddress]);
 
-  const fetchTokenBalance = async () => {
-    const bal = await getTokenBalance(name, walletAddress);
-    const fBal = ethers.utils.formatUnits(bal.toString(), 18);
-    setBalance(fBal.toString());
-  };
+  // const fetchTokenBalance = async () => {
+  //   const bal = await getTokenBalance(name, walletAddress);
+  //   const fBal = ethers.utils.formatUnits(bal.toString(), 18);
+  //   setBalance(fBal.toString());
+  // };
 
-  const fetchTokenAddress = async () => {
-    const address = await getTokenAddress(name);
-    setTokenAddress(address);
-  };
+  // const fetchTokenAddress = async () => {
+  //   // const address = await getTokenAddress(name);
+  //   setTokenAddress(address);
+  // };
 
-  return (
-    <div className="flex mx-2">
-      <div className="flex items-center bg-zinc-900 text-zinc-300 w-fit p-2 px-3 rounded-l-lg">
-        <p className="text-sm">{name}</p>
-        <p className="bg-zinc-800 p-0.5 px-3 ml-3 rounded-lg text-zinc-100">
-          {balance}
-        </p>
-      </div>
+  // return (
+  //   <div className="flex mx-2">
+  //     <div className="flex items-center bg-zinc-900 text-zinc-300 w-fit p-2 px-3 rounded-l-lg">
+  //       <p className="text-sm">{name}</p>
+  //       <p className="bg-zinc-800 p-0.5 px-3 ml-3 rounded-lg text-zinc-100">
+  //         {balance}
+  //       </p>
+  //     </div>
 
-      <div className="flex items-center p-2 px-2 bg-[#2172e5] rounded-r-lg">
-        <copyIcon.icon
-          className="h-6 cursor-pointer"
-          onClick={() => {
-            navigator.clipboard.writeText(tokenAddress);
-            setCopyIcon({ icon: ClipboardCheckIcon });
-          }}
-        />
-      </div>
+  //     <div className="flex items-center p-2 px-2 bg-[#2172e5] rounded-r-lg">
+  //       <copyIcon.icon
+  //         className="h-6 cursor-pointer"
+  //         onClick={() => {
+  //           navigator.clipboard.writeText(tokenAddress);
+  //           setCopyIcon({ icon: ClipboardCheckIcon });
+  //         }}
+  //       />
+  //     </div>
 
-      <Toaster />
-    </div>
-  );
+  //     <Toaster />
+  //   </div>
+  // );
+  return <></>;
 };
 
 export default TokenBalance;
