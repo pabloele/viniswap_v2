@@ -16,6 +16,15 @@ import toast, { Toaster } from "react-hot-toast";
 import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
 import { toEth, toWei } from "../utils/ether-utils";
 import { useAccount } from "wagmi";
+import {
+  CONNECT_WALLET,
+  ENTER_AMOUNT,
+  INCREASE_ALLOWANCE,
+  SWAP,
+  getSwapBtnClassName,
+  populateInputValue,
+  populateOutputValue,
+} from "../utils/swap-utils";
 
 const SwapComponent = () => {
   const [srcToken, setSrcToken] = useState(WETH);
@@ -28,11 +37,6 @@ const SwapComponent = () => {
   const outputValueRef = useRef();
 
   const isReversed = useRef(false);
-
-  const INCREASE_ALLOWANCE = "Increase allowance";
-  const ENTER_AMOUNT = "Enter an amount";
-  const CONNECT_WALLET = "Connect wallet";
-  const SWAP = "Swap";
 
   const srcTokenObj = {
     id: "srcToken",
@@ -132,7 +136,13 @@ const SwapComponent = () => {
         document.activeElement.ariaLabel !== "srcToken" &&
         !isReversed.current
       )
-        populateOutputValue(price);
+        populateOutputValue({
+          price,
+          destToken,
+          srcToken,
+          inputValue,
+          setOutputValue,
+        });
 
       setSrcTokenComp(<SwapField obj={srcTokenObj} ref={inputValueRef} />);
 
@@ -150,7 +160,13 @@ const SwapComponent = () => {
         document.activeElement.ariaLabel !== "destToken" &&
         !isReversed.current
       )
-        populateInputValue(price);
+        populateInputValue({
+          price,
+          destToken,
+          srcToken,
+          outputValue,
+          setInputValue,
+        });
 
       setDestTokenComp(<SwapField obj={destTokenObj} ref={outputValueRef} />);
 
@@ -164,7 +180,7 @@ const SwapComponent = () => {
   }, [outputValue, srcToken]);
 
   return (
-    <div className="bg-zinc-900 w-[35%] p-4 px-6 rounded-xl">
+    <div className="bg-zinc-900  p-4 px-6 rounded-xl w-full max-w-[500px] min-w-[375px]">
       <div className="flex items-center justify-between py-4 px-1">
         <p>Swap</p>
         {/* <CogIcon className="h-6" /> */}
@@ -200,8 +216,6 @@ const SwapComponent = () => {
     </div>
   );
 
-  // Front end functionality
-
   function handleReverseExchange(e) {
     // Setting the isReversed value to prevent the input/output values
     // being calculated in their respective side - effects
@@ -215,70 +229,6 @@ const SwapComponent = () => {
 
     setSrcToken(destToken);
     setDestToken(srcToken);
-  }
-
-  function getSwapBtnClassName() {
-    let className = "p-4 w-full my-2 rounded-xl";
-    className +=
-      swapBtnText === ENTER_AMOUNT || swapBtnText === CONNECT_WALLET
-        ? " text-zinc-400 bg-zinc-800 pointer-events-none"
-        : " bg-blue-700";
-    className += swapBtnText === INCREASE_ALLOWANCE ? " bg-yellow-600" : "";
-    return className;
-  }
-
-  function populateOutputValue(price) {
-    if (
-      destToken === DEFAULT_VALUE ||
-      srcToken === DEFAULT_VALUE ||
-      !inputValue
-    )
-      return;
-
-    try {
-      if (srcToken !== WETH && destToken !== WETH) setOutputValue(inputValue);
-      else if (srcToken === WETH && destToken !== WETH) {
-        const outValue = inputValue / price;
-        setOutputValue(outValue);
-      } else if (srcToken !== WETH && destToken === WETH) {
-        console.log("HOLA", price, inputValue);
-        // const outValue = toEth(toWei(inputValue * price, 14));
-        const outValue = inputValue * price;
-        setOutputValue(outValue);
-      }
-    } catch (error) {
-      setOutputValue("0");
-    }
-  }
-
-  function populateInputValue(price) {
-    if (
-      destToken === DEFAULT_VALUE ||
-      srcToken === DEFAULT_VALUE ||
-      !outputValue
-    )
-      return;
-
-    try {
-      if (srcToken !== WETH && destToken !== WETH) setInputValue(outputValue);
-      else if (srcToken === WETH && destToken !== WETH) {
-        // const outValue = toEth(toWei(outputValue, 14));
-        setInputValue(outputValue * price);
-      } else if (srcToken !== ETH && destToken === ETH) {
-        // const outValue = toEth(toWei(outputValue), 14);
-        setInputValue(outputValue / price);
-      }
-    } catch (error) {
-      setInputValue("0");
-    }
-  }
-
-  function handleInsufficientAllowance() {
-    notifyError(
-      "Insufficient allowance. Click 'Increase allowance' to increase it."
-    );
-
-    setSwapBtnText(INCREASE_ALLOWANCE);
   }
 };
 
