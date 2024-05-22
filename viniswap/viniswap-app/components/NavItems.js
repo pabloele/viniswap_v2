@@ -1,26 +1,28 @@
-import React, { useState } from 'react';
-import { ArrowSmUpIcon } from '@heroicons/react/outline';
+"use client";
+import React, { useEffect, useState } from "react";
+import { ArrowSmUpIcon } from "@heroicons/react/outline";
+import { useRouter } from "next/router";
 
 const NavItems = () => {
-  const SWAP = 'Swap';
-  const POOL = 'Pool';
-  const VOTE = 'Vote';
-  const CHART = 'Charts';
+  const router = useRouter();
+  const SWAP = "Swap";
+  const POOL = "Pool";
+  const VOTE = "Vote";
+  const CHART = "Charts";
 
   const [selectedNavItem, setSelectedNavItem] = useState(SWAP);
 
+  const handleNavigate = (route) => () => {
+    setSelectedNavItem(route);
+    router.push(route.toLowerCase());
+  };
+
   return (
     <div className="bg-zinc-900 h-fit flex items-center justify-around rounded-full mx-6">
-      <p
-        className={getNavIconClassName(SWAP)}
-        onClick={() => setSelectedNavItem(SWAP)}
-      >
+      <p className={getNavIconClassName(SWAP)} onClick={handleNavigate(SWAP)}>
         {SWAP}
       </p>
-      <p
-        className={getNavIconClassName(POOL)}
-        onClick={() => setSelectedNavItem(POOL)}
-      >
+      <p className={getNavIconClassName(POOL)} onClick={handleNavigate(POOL)}>
         {POOL}
       </p>
       {/* <p
@@ -41,11 +43,11 @@ const NavItems = () => {
 
   function getNavIconClassName(name) {
     let className =
-      'p-1 px-4 cursor-pointer border-[4px] border-transparent flex items-center';
+      "p-1 px-4 cursor-pointer border-[4px] border-transparent flex items-center";
     className +=
       name === selectedNavItem
-        ? ' bg-zinc-800 border-zinc-900 rounded-full'
-        : '';
+        ? " bg-zinc-800 border-zinc-900 rounded-full"
+        : "";
     return className;
   }
 };

@@ -24,10 +24,11 @@ import { CogIcon, ArrowSmDownIcon } from "@heroicons/react/outline";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import SwapField from "./SwapField";
 import TransactionStatus from "./TransactionStatus";
-import toast, { Toaster } from "react-hot-toast";
+
 import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
 import { toEth, toWei } from "../utils/ether-utils";
 import { useAccount } from "wagmi";
+import { Toaster } from "react-hot-toast";
 
 const SwapComponent = () => {
   const { address } = useAccount();

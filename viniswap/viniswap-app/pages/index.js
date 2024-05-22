@@ -1,11 +1,13 @@
-import Header from '../components/Header';
-import SwapComponent from '../components/SwapComponent';
-
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import HomeLayout from "../layout/HomeLayout";
 export default function Home() {
-  return (
-    <div className="w-full h-screen flex flex-col items-center justify-center bg-[#2D242F]">
-      <Header />
-      <SwapComponent />
-    </div>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push("/swap");
+  }, [router]);
+
+  return <HomeLayout />;
 }
