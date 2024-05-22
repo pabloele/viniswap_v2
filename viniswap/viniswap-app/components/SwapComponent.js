@@ -9,24 +9,30 @@ import {
   wethAllowance,
 } from "../utils/queries";
 
-import { CogIcon, ArrowSmDownIcon } from "@heroicons/react/outline";
-import SwapField from "./SwapField";
-import TransactionStatus from "./TransactionStatus";
-import toast, { Toaster } from "react-hot-toast";
-import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
-import { toEth, toWei } from "../utils/ether-utils";
-import { useAccount } from "wagmi";
 import {
   CONNECT_WALLET,
   ENTER_AMOUNT,
   INCREASE_ALLOWANCE,
   SWAP,
   getSwapBtnClassName,
+  notifyError,
+  notifySuccess,
   populateInputValue,
   populateOutputValue,
 } from "../utils/swap-utils";
+import { CogIcon, ArrowSmDownIcon } from "@heroicons/react/outline";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
+import SwapField from "./SwapField";
+import TransactionStatus from "./TransactionStatus";
+import toast, { Toaster } from "react-hot-toast";
+import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
+import { toEth, toWei } from "../utils/ether-utils";
+import { useAccount } from "wagmi";
 
 const SwapComponent = () => {
+  const { address } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   const [srcToken, setSrcToken] = useState(WETH);
   const [destToken, setDestToken] = useState(DEFAULT_VALUE);
 
@@ -61,64 +67,6 @@ const SwapComponent = () => {
 
   const [swapBtnText, setSwapBtnText] = useState(ENTER_AMOUNT);
   const [txPending, setTxPending] = useState(false);
-
-  const notifyError = (msg) => toast.error(msg, { duration: 6000 });
-  const notifySuccess = () => toast.success("Transaction completed.");
-  const { address } = useAccount();
-
-  const performSwap = async () => {
-    setTxPending(true);
-    let receipt;
-
-    if (srcToken === WETH && destToken !== WETH) {
-      console.log("hola", outputValue);
-      receipt = await swapWethToTokens(outputValue);
-    } else if (srcToken !== WETH && destToken === WETH) {
-      receipt = await swapTokensToWeth(inputValue);
-    }
-
-    setTxPending(false);
-    if (receipt && !receipt.hasOwnProperty("transactionHash")) {
-      notifyError(receipt);
-    } else {
-      notifySuccess();
-    }
-  };
-
-  const handleSwap = async () => {
-    if (srcToken === WETH && destToken !== WETH) {
-      setTxPending(true);
-      const allowance = await wethAllowance();
-      console.log(allowance, inputValue);
-      if (allowance < inputValue) {
-        const receipt = await increaseWethAllowance(inputValue * 1.2);
-        console.log(receipt);
-      }
-
-      setTxPending(false);
-
-      performSwap();
-    } else if (srcToken !== WETH && destToken === WETH) {
-      setTxPending(true);
-      const allowance = await tokenAllowance();
-      console.log(allowance, inputValue);
-      if (allowance < inputValue) {
-        const receipt = await increaseTokenAllowance(inputValue);
-        console.log(receipt);
-      }
-
-      setTxPending(false);
-
-      performSwap();
-    }
-  };
-
-  const handleIncreaseAllowance = async () => {
-    setTxPending(true);
-    await increaseAllowance(srcToken, inputValue);
-    setTxPending(false);
-    setSwapBtnText(SWAP);
-  };
 
   useEffect(() => {
     // Handling the text of the submit button
@@ -172,12 +120,74 @@ const SwapComponent = () => {
 
       if (outputValue?.length === 0) setInputValue("");
 
-      // Resetting the isReversed value if its set
       if (isReversed.current) isReversed.current = false;
     };
 
     fetchPriceAndPopulateinput();
   }, [outputValue, srcToken]);
+
+  const performSwap = async () => {
+    setTxPending(true);
+    let receipt;
+
+    if (srcToken === WETH && destToken !== WETH) {
+      receipt = await swapWethToTokens(outputValue);
+    } else if (srcToken !== WETH && destToken === WETH) {
+      receipt = await swapTokensToWeth(inputValue);
+    }
+
+    setTxPending(false);
+    if (receipt && !receipt.hasOwnProperty("transactionHash")) {
+      notifyError(receipt);
+    } else {
+      notifySuccess();
+    }
+  };
+
+  const handleSwap = async () => {
+    if (srcToken === WETH && destToken !== WETH) {
+      setTxPending(true);
+      const allowance = await wethAllowance();
+      console.log(allowance, inputValue);
+      if (allowance < inputValue) {
+        const receipt = await increaseWethAllowance(inputValue * 1.2);
+        console.log(receipt);
+      }
+
+      setTxPending(false);
+
+      performSwap();
+    } else if (srcToken !== WETH && destToken === WETH) {
+      setTxPending(true);
+      const allowance = await tokenAllowance();
+      console.log(allowance, inputValue);
+      if (allowance < inputValue) {
+        const receipt = await increaseTokenAllowance(inputValue);
+        console.log(receipt);
+      }
+
+      setTxPending(false);
+
+      performSwap();
+    }
+  };
+
+  const handleIncreaseAllowance = async () => {
+    setTxPending(true);
+    await increaseAllowance(srcToken, inputValue);
+    setTxPending(false);
+    setSwapBtnText(SWAP);
+  };
+
+  function handleReverseExchange(e) {
+    isReversed.current = true;
+
+    setInputValue(outputValue);
+    setOutputValue(inputValue);
+
+    setSrcToken(destToken);
+    setDestToken(srcToken);
+  }
 
   return (
     <div className="bg-zinc-900  p-4 px-6 rounded-xl w-full max-w-[500px] min-w-[375px]">
@@ -203,8 +213,7 @@ const SwapComponent = () => {
         onClick={() => {
           if (swapBtnText === INCREASE_ALLOWANCE) handleIncreaseAllowance();
           else if (swapBtnText === SWAP) handleSwap();
-          // else if (swapBtnText === CONNECT_WALLET)
-          //   alert('llamar a conectar la billetera');
+          else if (swapBtnText === CONNECT_WALLET) openConnectModal();
         }}
       >
         {swapBtnText}
@@ -215,21 +224,6 @@ const SwapComponent = () => {
       <Toaster />
     </div>
   );
-
-  function handleReverseExchange(e) {
-    // Setting the isReversed value to prevent the input/output values
-    // being calculated in their respective side - effects
-    isReversed.current = true;
-
-    // 1. Swap tokens (srcToken <-> destToken)
-    // 2. Swap values (inputValue <-> outputValue)
-
-    setInputValue(outputValue);
-    setOutputValue(inputValue);
-
-    setSrcToken(destToken);
-    setDestToken(srcToken);
-  }
 };
 
 export default SwapComponent;

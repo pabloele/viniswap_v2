@@ -1,10 +1,13 @@
 import { DEFAULT_VALUE, WETH } from "./SupportedCoins";
+import toast, { Toaster } from "react-hot-toast";
 
 export const INCREASE_ALLOWANCE = "Increase allowance";
 export const ENTER_AMOUNT = "Enter an amount";
 export const CONNECT_WALLET = "Connect wallet";
 export const SWAP = "Swap";
 
+export const notifyError = (msg) => toast.error(msg, { duration: 6000 });
+export const notifySuccess = () => toast.success("Transaction completed.");
 export const getSwapBtnClassName = (swapBtnText) => {
   let className = "p-4 w-full my-2 rounded-xl";
   className +=
