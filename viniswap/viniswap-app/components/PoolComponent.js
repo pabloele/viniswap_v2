@@ -16,13 +16,13 @@ const PoolComponent = () => {
   const { openConnectModal } = useConnectModal();
 
   return (
-    <div className="bg-zinc-900  p-4 px-6 rounded-xl w-full max-w-[500px] min-w-[375px]">
-      <div className="flex items-center justify-between py-4 px-1">
+    <div className="p-4 translate-y-20 rounded-3xl w-full max-w-[500px] bg-zinc-900 mt-20">
+      <div className="flex items-center justify-between  px-1 my-4">
         <p>Pool</p>
-        {/* <CogIcon className="h-6" /> */}
+        <CogIcon className="h-6" />
       </div>
-      <div className="relative bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
-        <ArrowSmDownIcon className="absolute left-1/2 -translate-x-1/2 -bottom-6 h-10 p-1 bg-[#212429] border-4 border-zinc-900 text-zinc-300 rounded-xl cursor-pointer hover:scale-110" />
+      <div className="flex bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
+        <ArrowSmDownIcon className="fixed left-1/2 -translate-x-1/2 -translate-y-[-100%]  justify-center  h-10 p-1 bg-[#212429] border-4 border-zinc-900 text-zinc-300 rounded-xl cursor-pointer hover:scale-110" />
       </div>
 
       <div className="bg-[#212429] p-4 py-6 rounded-xl mt-2 border-[2px] border-transparent hover:border-zinc-600">

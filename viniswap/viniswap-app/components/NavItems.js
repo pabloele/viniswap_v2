@@ -7,7 +7,7 @@ const NavItems = () => {
   const router = useRouter();
   const SWAP = "Swap";
   const POOL = "Pool";
-  const VOTE = "Vote";
+  const BRIDGE = "Bridge";
   const CHART = "Charts";
 
   const [selectedNavItem, setSelectedNavItem] = useState(SWAP);
@@ -18,26 +18,26 @@ const NavItems = () => {
   };
 
   return (
-    <div className="bg-zinc-900 h-fit flex items-center justify-around rounded-full mx-6">
+    <div className="bg-zinc-900 h-fit flex items-center justify-around rounded-full">
       <p className={getNavIconClassName(SWAP)} onClick={handleNavigate(SWAP)}>
         {SWAP}
       </p>
       <p className={getNavIconClassName(POOL)} onClick={handleNavigate(POOL)}>
         {POOL}
       </p>
-      {/* <p
-        className={getNavIconClassName(VOTE)}
-        onClick={() => setSelectedNavItem(VOTE)}
+      <p
+        className={getNavIconClassName(BRIDGE)}
+        onClick={() => setSelectedNavItem(BRIDGE)}
       >
-        {VOTE}
+        {BRIDGE}
       </p>
       <p
         className={getNavIconClassName(CHART)}
-        onClick={() => window.open('https://info.uniswap.org/#/', '_blank')}
+        onClick={() => window.open("https://info.uniswap.org/#/", "_blank")}
       >
         {CHART}
-        <ArrowSmUpIcon className='h-4 rotate-45' />
-      </p> */}
+        <ArrowSmUpIcon className="h-4 rotate-45" />
+      </p>
     </div>
   );
 
