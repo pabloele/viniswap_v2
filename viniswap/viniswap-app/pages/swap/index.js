@@ -1,10 +1,10 @@
-import SwapComponent from "../../components/SwapComponent";
+import Swap from "../../components/Swap";
 import HomeLayout from "../../layout/HomeLayout";
 
 export default function index() {
   return (
     <HomeLayout>
-      <SwapComponent />
+      <Swap />
     </HomeLayout>
   );
 }

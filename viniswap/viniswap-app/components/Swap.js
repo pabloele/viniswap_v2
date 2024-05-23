@@ -30,7 +30,7 @@ import { toEth, toWei } from "../utils/ether-utils";
 import { useAccount } from "wagmi";
 import { Toaster } from "react-hot-toast";
 
-const SwapComponent = () => {
+const Swap = () => {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
 
@@ -228,4 +228,4 @@ const SwapComponent = () => {
   );
 };
 
-export default SwapComponent;
+export default Swap;

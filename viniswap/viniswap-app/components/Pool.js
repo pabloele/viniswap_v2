@@ -11,7 +11,7 @@ import { useAccount } from "wagmi";
 import { Toaster } from "react-hot-toast";
 import { getSwapBtnClassName } from "../utils/swap-utils";
 
-const PoolComponent = () => {
+const Pool = () => {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
 
@@ -47,4 +47,4 @@ const PoolComponent = () => {
   );
 };
 
-export default PoolComponent;
+export default Pool;

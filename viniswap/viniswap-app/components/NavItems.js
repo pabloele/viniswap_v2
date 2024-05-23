@@ -27,7 +27,7 @@ const NavItems = () => {
       </p>
       <p
         className={getNavIconClassName(BRIDGE)}
-        onClick={() => setSelectedNavItem(BRIDGE)}
+        onClick={handleNavigate(BRIDGE)}
       >
         {BRIDGE}
       </p>
