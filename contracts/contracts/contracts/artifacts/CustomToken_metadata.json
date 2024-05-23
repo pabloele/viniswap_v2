@@ -433,7 +433,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/Uniswap.sol": "CustomToken"
+			"contracts/contracts/customTokens.sol": "CustomToken"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -487,12 +487,12 @@
 				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
 			]
 		},
-		"contracts/Uniswap.sol": {
-			"keccak256": "0xfb2976299cc156868a183475f1833589529bcefdc56a931cd303e2414388d5da",
+		"contracts/contracts/customTokens.sol": {
+			"keccak256": "0xf18697139ff6f5f8d94f7bfadc10234d0ad133ee7986e12a6cea5c8c94b5baca",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6a0e3a45734e10d4512af4a2bf0bc96f156435fbd4e84e5e09e2ec53bff28a77",
-				"dweb:/ipfs/QmcZjQxxVfNptpZhN7sYNbhRMymsdPgQGGbKfPSc3Y6SVW"
+				"bzz-raw://c2c80214e42803cebc9dcc25e578c81a4f7cfc4f52300a4169dc7e60c3fc162e",
+				"dweb:/ipfs/Qme9pfoG2cJyoQWWQxpc6Q7gDy5PFn4K1uV3kg2zCgcH92"
 			]
 		}
 	},
