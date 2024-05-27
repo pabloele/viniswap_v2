@@ -123,16 +123,16 @@ export const increaseWethAllowance = async (amount) => {
       toWei(amount.toString()).toString()
     );
 
-    const receipt = await approvalTx.wait();
-    console.log("Approval transaction receipt:", receipt);
+    // const receipt = await approvalTx.wait();
+    console.log("Approval transaction receipt:", approvalTx);
 
-    return receipt;
+    return approvalTx;
   } catch (error) {
     console.log(error);
   }
 };
 
-// increaseWethAllowance(0.1);
+// increaseWethAllowance(0);
 
 export const getTokenPrice = async () => {
   try {
@@ -165,8 +165,9 @@ export const getTokenPrice = async () => {
 
 export const swapTokensToWeth = async (tokenAmount) => {
   const allowanceStatus = await tokenAllowance();
-  console.log("Status de aprobación: ", allowanceStatus);
+  console.log("Allowance status: ", allowanceStatus);
   const routerObj = await routerContract();
+  console.log("router address:", routerObj.address);
   if (!routerObj) {
     console.error("No se pudo obtener el contrato del router");
     return;
@@ -206,11 +207,10 @@ export const swapTokensToWeth = async (tokenAmount) => {
 // swapTokensToWeth();
 
 export const swapWethToTokens = async (tokenAmount) => {
-  console.log(tokenAmount);
   const exactTokenAmount = Math.floor(tokenAmount);
   console.log(exactTokenAmount);
   const allowanceStatus = await wethAllowance();
-  console.log("Status de aprobación: ", allowanceStatus);
+  console.log("Allowance status: ", allowanceStatus);
   const routerObj = await routerContract();
   if (!routerObj) {
     console.error("No se pudo obtener el contrato del router");

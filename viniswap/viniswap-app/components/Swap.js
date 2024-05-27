@@ -150,8 +150,11 @@ const Swap = () => {
       setTxPending(true);
       const allowance = await wethAllowance();
       console.log(allowance, inputValue);
+
       if (allowance < inputValue) {
         const receipt = await increaseWethAllowance(inputValue * 1.2);
+
+        await receipt.wait();
         console.log(receipt);
       }
 
