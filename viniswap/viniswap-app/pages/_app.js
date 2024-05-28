@@ -47,19 +47,19 @@ const { provider, chains } = configureChains(
     }),
   ]
 );
-console.log(provider);
-console.log(chains);
+// console.log(provider);
+// console.log(chains);
 const { connectors } = getDefaultWallets({
   appName: "Uniswap",
   chains,
 });
-console.log(connectors);
+// console.log(connectors);
 const wagmiClient = createClient({
   autoConnect: false,
   connectors,
   provider,
 });
-console.log("Wagmi Client:", wagmiClient);
+// console.log("Wagmi Client:", wagmiClient);
 const myTheme = merge(midnightTheme(), {
   colors: {
     accentColor: "#1818b",
