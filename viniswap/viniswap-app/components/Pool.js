@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   getTokenPrice,
   increaseTokenAllowance,
@@ -8,7 +8,6 @@ import {
   tokenAllowance,
   wethAllowance,
 } from "../utils/queries";
-
 import {
   CONNECT_WALLET,
   ENTER_AMOUNT,
@@ -20,99 +19,121 @@ import {
   populateInputValue,
   populateOutputValue,
 } from "../utils/swap-utils";
-import { CogIcon, ArrowSmDownIcon } from "@heroicons/react/outline";
+import { CogIcon } from "@heroicons/react/outline";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
-import SwapField from "./SwapField";
-import TransactionStatus from "./TransactionStatus";
-
-import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
-import { toEth, toWei } from "../utils/ether-utils";
-import { useAccount } from "wagmi";
 import { Toaster } from "react-hot-toast";
-import { availablePools } from "../utils/listedPools";
+import { useAccount } from "wagmi";
 import { usePools } from "../hooks/usePools";
+import { whitelistedPools } from "../utils/whitelistedPools";
+import {
+  DEFAULT_VALUE,
+  WETH,
+  MTB24,
+  getCoinAddress,
+  coinAddresses,
+} from "../utils/SupportedCoins";
+import { Dropdown } from "@nextui-org/react";
 
 const Pool = () => {
-  const { address } = useAccount();
-  const { pools, routerObj } = usePools();
+  const whitelisted = whitelistedPools;
 
+  const { address } = useAccount();
+  const { pools } = usePools();
+  const [reserves, setReserves] = useState({});
   const { openConnectModal } = useConnectModal();
 
-  const [srcToken, setSrcToken] = useState(WETH);
+  const [srcToken, setSrcToken] = useState(DEFAULT_VALUE);
   const [destToken, setDestToken] = useState(DEFAULT_VALUE);
 
-  const [inputValue, setInputValue] = useState();
-  const [outputValue, setOutputValue] = useState();
+  const [inputValue, setInputValue] = useState("");
+  const [outputValue, setOutputValue] = useState("");
 
-  const inputValueRef = useRef();
-  const outputValueRef = useRef();
-
-  const isReversed = useRef(false);
+  const isReversed = useState(false);
 
   const srcTokenObj = {
     id: "srcToken",
-    value: inputValue,
+    // value: inputValue,
+    value: reserves.reverse ? reserves.reserves1 : reserves.reserves0,
     setValue: setInputValue,
-    defaultValue: srcToken,
+    defaultValue: srcToken.name,
     ignoreValue: destToken,
     setToken: setSrcToken,
   };
 
   const destTokenObj = {
     id: "destToken",
-    value: outputValue,
+    // value: outputValue,
+    value: reserves.reverse ? reserves.reserves0 : reserves.reserves1,
     setValue: setOutputValue,
-    defaultValue: destToken,
+    defaultValue: destToken.name,
     ignoreValue: srcToken,
     setToken: setDestToken,
   };
 
-  const [srcTokenComp, setSrcTokenComp] = useState();
-  const [destTokenComp, setDestTokenComp] = useState();
-
   const [swapBtnText, setSwapBtnText] = useState(ENTER_AMOUNT);
   const [txPending, setTxPending] = useState(false);
-  console.log(pools);
+
+  const pairIsWhitelisted = (address0, address1) => {
+    const pair = [address0, address1];
+
+    const isWhitelisted = whitelistedPools.find(
+      (pool) =>
+        (pool[0] === address0 && pool[1] === address1) ||
+        (pool[0] === address1 && pool[1] === address0)
+    );
+
+    if (isWhitelisted) {
+      console.log(`Pair (${address0}, ${address1}) is whitelisted`);
+    } else {
+      console.log(`Pair (${address0}, ${address1}) is not whitelisted`);
+    }
+
+    return !!isWhitelisted;
+  };
+
+  const getPoolReserves = ({ srcToken, destToken }) => {
+    console.log(srcToken.address, destToken.address);
+
+    if (!pairIsWhitelisted(srcToken.address, destToken.address)) return;
+
+    const pool = pools.find(
+      (pool) =>
+        (pool.token0 === srcToken.address &&
+          pool.token1 === destToken.address) ||
+        (pool.token0 === destToken.address && pool.token1 === srcToken.address)
+    );
+
+    const reverse = pool?.token0 !== srcToken?.address;
+    const poolData = { ...pool, reverse: reverse };
+    setReserves(poolData);
+    console.log(poolData);
+    return poolData;
+  };
+
   useEffect(() => {
-    // Handling the text of the submit button
     if (!address) setSwapBtnText(CONNECT_WALLET);
     else if (!inputValue || !outputValue) setSwapBtnText(ENTER_AMOUNT);
     else setSwapBtnText(SWAP);
   }, [inputValue, outputValue, address]);
 
   useEffect(() => {
-    const fetchPriceAndPopulateOutput = async () => {
-      const price = await getTokenPrice();
-      console.log(price);
-      if (
-        document.activeElement !== outputValueRef.current &&
-        document.activeElement.ariaLabel !== "srcToken" &&
-        !isReversed.current
-      )
-        populateOutputValue({
-          price,
-          destToken,
-          srcToken,
-          inputValue,
-          setOutputValue,
-        });
+    const getReserves = async () => {
+      const srcTokenAddress = getCoinAddress(srcToken);
+      const destTokenAddress = getCoinAddress(destToken);
+      const reserves = getPoolReserves({ srcToken, destToken });
+      console.log(reserves);
 
-      setSrcTokenComp(<SwapField obj={srcTokenObj} ref={inputValueRef} />);
-
-      if (inputValue?.length === 0) setOutputValue("");
+      if (inputValue.length === 0) setOutputValue("");
     };
-    fetchPriceAndPopulateOutput();
-  }, [inputValue, destToken]);
+    // console.log("//////////////////", pairIsWhitelisted());
+    getReserves();
+  }, [destToken, srcToken, setDestToken, setSrcToken]);
 
   useEffect(() => {
-    const fetchPriceAndPopulateinput = async () => {
+    const fetchPriceAndPopulateInput = async () => {
       const price = await getTokenPrice();
-      console.log(price);
-      if (
-        document.activeElement !== inputValueRef.current &&
-        document.activeElement.ariaLabel !== "destToken" &&
-        !isReversed.current
-      )
+
+      if (!isReversed.current) {
         populateInputValue({
           price,
           destToken,
@@ -120,101 +141,118 @@ const Pool = () => {
           outputValue,
           setInputValue,
         });
+      }
 
-      setDestTokenComp(<SwapField obj={destTokenObj} ref={outputValueRef} />);
-
-      if (outputValue?.length === 0) setInputValue("");
-
+      if (outputValue.length === 0) setInputValue("");
       if (isReversed.current) isReversed.current = false;
     };
 
-    fetchPriceAndPopulateinput();
+    fetchPriceAndPopulateInput();
   }, [outputValue, srcToken]);
 
-  const performSwap = async () => {
-    setTxPending(true);
-    let receipt;
+  const PoolField = ({ obj }) => {
+    const {
+      id,
+      value = "",
+      setValue,
+      defaultValue,
+      setToken,
+      ignoreValue,
+    } = obj;
 
-    if (srcToken === WETH && destToken !== WETH) {
-      receipt = await swapWethToTokens(outputValue);
-    } else if (srcToken !== WETH && destToken === WETH) {
-      receipt = await swapTokensToWeth(inputValue);
-    }
-
-    setTxPending(false);
-    if (receipt && !receipt.hasOwnProperty("transactionHash")) {
-      notifyError(receipt);
-    } else {
-      notifySuccess();
-    }
+    return (
+      <div className="flex items-center rounded-xl">
+        <input
+          className="w-full outline-none h-8 px-2 appearance-none text-3xl bg-transparent"
+          type={"number"}
+          value={value}
+          placeholder={"0.0"}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <Selector
+          id={id}
+          setToken={setToken}
+          defaultValue={defaultValue}
+          ignoreValue={ignoreValue}
+        />
+      </div>
+    );
   };
 
-  const handleSwap = async () => {
-    if (srcToken === WETH && destToken !== WETH) {
-      setTxPending(true);
-      const allowance = await wethAllowance();
-      console.log(allowance, inputValue);
+  const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
+    let menu = [];
+    coinAddresses.map((coin) => {
+      menu = [...menu, { key: coin.name, name: coin.name }];
+    });
+    // const menu = [
+    //   { key: WETH, name: WETH },
+    //   { key: MTB24, name: MTB24 },
+    // ];
 
-      if (allowance < inputValue) {
-        const receipt = await increaseWethAllowance(inputValue * 1.2);
+    const [selectedItem, setSelectedItem] = useState();
+    const [menuItems, setMenuItems] = useState(getFilteredItems(ignoreValue));
 
-        await receipt.wait();
-        console.log(receipt);
-      }
-
-      setTxPending(false);
-
-      performSwap();
-    } else if (srcToken !== WETH && destToken === WETH) {
-      setTxPending(true);
-      const allowance = await tokenAllowance();
-      console.log(allowance, inputValue);
-      if (allowance < inputValue) {
-        const receipt = await increaseTokenAllowance(inputValue);
-        console.log(receipt);
-      }
-
-      setTxPending(false);
-
-      performSwap();
+    function getFilteredItems(ignoreValue) {
+      return menu.filter((item) => item.key !== ignoreValue);
     }
+
+    useEffect(() => {
+      setSelectedItem(defaultValue);
+    }, [defaultValue]);
+
+    useEffect(() => {
+      setMenuItems(getFilteredItems(ignoreValue));
+    }, [ignoreValue]);
+
+    return (
+      <Dropdown>
+        <Dropdown.Button
+          css={{
+            backgroundColor:
+              selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
+          }}
+        >
+          {selectedItem}
+        </Dropdown.Button>
+        <Dropdown.Menu
+          aria-label="Dynamic Actions"
+          items={menuItems}
+          onAction={(key) => {
+            setSelectedItem(key);
+            setToken({ name: key, address: getCoinAddress(key) });
+          }}
+        >
+          {(item) => (
+            <Dropdown.Item
+              aria-label={id}
+              key={item.key}
+              color={item.key === "delete" ? "error" : "default"}
+            >
+              {item.name}
+            </Dropdown.Item>
+          )}
+        </Dropdown.Menu>
+      </Dropdown>
+    );
   };
-
-  const handleIncreaseAllowance = async () => {
-    setTxPending(true);
-    await increaseAllowance(srcToken, inputValue);
-    setTxPending(false);
-    setSwapBtnText(SWAP);
-  };
-
-  function handleReverseExchange(e) {
-    isReversed.current = true;
-
-    setInputValue(outputValue);
-    setOutputValue(inputValue);
-
-    setSrcToken(destToken);
-    setDestToken(srcToken);
-  }
 
   return (
     <div className="p-4 translate-y-20 rounded-3xl w-full max-w-[500px] bg-zinc-900 mt-20">
       <div className="flex items-center justify-between  px-1 my-4">
         <p>Pool</p>
-        <CogIcon className="h-6" />
-      </div>
-
-      <div className="flex bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
-        {srcTokenComp}
-
-        <ArrowSmDownIcon
-          className="fixed left-1/2 -translate-x-1/2 -translate-y-[-100%]  justify-center  h-10 p-1 bg-[#212429] border-4 border-zinc-900 text-zinc-300 rounded-xl cursor-pointer hover:scale-110"
-          onClick={handleReverseExchange}
+        <CogIcon
+          className="h-6"
+          onClick={() => alert(whitelistedPools)}
+          style={{ cursor: "pointer" }}
         />
       </div>
 
+      <div className="flex bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
+        <PoolField obj={srcTokenObj} />
+      </div>
+
       <div className="bg-[#212429] p-4 py-6 rounded-xl mt-2 border-[2px] border-transparent hover:border-zinc-600">
-        {destTokenComp}
+        <PoolField obj={destTokenObj} />
       </div>
 
       <button

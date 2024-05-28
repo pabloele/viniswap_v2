@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
-import { routerContract, factoryContract } from "../utils/contract";
-import { whitelistedPools } from "../utils/listedPools";
+import {
+  routerContract,
+  factoryContract,
+  pairContract,
+} from "../utils/contract";
+
+import { toEth } from "../utils/ether-utils";
+import { whitelistedPools } from "../utils/whitelistedPools";
 
 export const usePools = () => {
   const whitelisted = whitelistedPools;
+  console.log(whitelisted);
   const [pools, setPools] = useState([]);
 
   useEffect(() => {
@@ -12,12 +19,25 @@ export const usePools = () => {
         const factory = await factoryContract();
 
         const pairsCount = await factory.allPairsLength();
-        console.log(pairsCount.toString());
+
         const poolsArray = [];
 
         for (let i = 0; i < pairsCount; i++) {
           const pairAddress = await factory.allPairs(i);
-          poolsArray.push(pairAddress);
+          const pairObj = await pairContract({ pairAddress });
+          const reserves = await pairObj.getReserves();
+          const tokenAddress0 = await pairObj.token0();
+          const tokenAddress1 = await pairObj.token1();
+          const poolObj = {
+            address: pairAddress,
+            reserves0: toEth(reserves[0].toString()),
+            reserves1: toEth(reserves[1].toString()),
+            timeStamp: reserves[2].toString(),
+            token0: tokenAddress0,
+            token1: tokenAddress1,
+          };
+          console.log(poolObj);
+          poolsArray.push({ ...poolObj });
         }
 
         setPools(poolsArray);
