@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import { Dropdown } from '@nextui-org/react';
-import { WETH, MTB24, DEFAULT_VALUE } from '../utils/SupportedCoins';
+import { Dropdown } from "@nextui-org/react";
+import { WETH, MTB24, DEFAULT_VALUE } from "../utils/SupportedCoins";
 
 const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
   const menu = [
@@ -13,7 +13,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
   const [menuItems, setMenuItems] = useState(getFilteredItems(ignoreValue));
 
   function getFilteredItems(ignoreValue) {
-    return menu.filter((item) => item['key'] !== ignoreValue);
+    return menu.filter((item) => item["key"] !== ignoreValue);
   }
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
       <Dropdown.Button
         css={{
           backgroundColor:
-            selectedItem === DEFAULT_VALUE ? '#2172e5' : '#2c2f36',
+            selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
         }}
       >
         {selectedItem}
@@ -46,7 +46,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
           <Dropdown.Item
             aria-label={id}
             key={item.key}
-            color={item.key === 'delete' ? 'error' : 'default'}
+            color={item.key === "delete" ? "error" : "default"}
           >
             {item.name}
           </Dropdown.Item>

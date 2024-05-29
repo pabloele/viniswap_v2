@@ -42,8 +42,14 @@ const Pool = () => {
   const [reserves, setReserves] = useState({});
   const { openConnectModal } = useConnectModal();
 
-  const [srcToken, setSrcToken] = useState(DEFAULT_VALUE);
-  const [destToken, setDestToken] = useState(DEFAULT_VALUE);
+  const [srcToken, setSrcToken] = useState({
+    name: "Select a token",
+    address: "",
+  });
+  const [destToken, setDestToken] = useState({
+    name: "Select a token",
+    address: "",
+  });
 
   const [inputValue, setInputValue] = useState("");
   const [outputValue, setOutputValue] = useState("");
@@ -94,7 +100,10 @@ const Pool = () => {
   const getPoolReserves = ({ srcToken, destToken }) => {
     console.log(srcToken.address, destToken.address);
 
-    if (!pairIsWhitelisted(srcToken.address, destToken.address)) return;
+    if (!pairIsWhitelisted(srcToken.address, destToken.address)) {
+      setReserves({});
+      return;
+    }
 
     const pool = pools.find(
       (pool) =>
@@ -125,7 +134,7 @@ const Pool = () => {
 
       if (inputValue.length === 0) setOutputValue("");
     };
-    // console.log("//////////////////", pairIsWhitelisted());
+
     getReserves();
   }, [destToken, srcToken, setDestToken, setSrcToken]);
 
@@ -181,13 +190,10 @@ const Pool = () => {
 
   const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
     let menu = [];
+
     coinAddresses.map((coin) => {
       menu = [...menu, { key: coin.name, name: coin.name }];
     });
-    // const menu = [
-    //   { key: WETH, name: WETH },
-    //   { key: MTB24, name: MTB24 },
-    // ];
 
     const [selectedItem, setSelectedItem] = useState();
     const [menuItems, setMenuItems] = useState(getFilteredItems(ignoreValue));
@@ -240,11 +246,7 @@ const Pool = () => {
     <div className="p-4 translate-y-20 rounded-3xl w-full max-w-[500px] bg-zinc-900 mt-20">
       <div className="flex items-center justify-between  px-1 my-4">
         <p>Pool</p>
-        <CogIcon
-          className="h-6"
-          onClick={() => alert(whitelistedPools)}
-          style={{ cursor: "pointer" }}
-        />
+        <CogIcon className="h-6" style={{ cursor: "pointer" }} />
       </div>
 
       <div className="flex bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
