@@ -83,11 +83,9 @@ export const pairContract = async ({ pairAddress }) => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      // const router = await routerContract();
-      // const factoryAddress = await router.factory();
       return new ethers.Contract(pairAddress, pairABI, signer);
     } catch (error) {
-      console.error("Failed to get factory contract:", error);
+      console.error("Failed to get pair contract:", error);
       throw error;
     }
   } else {

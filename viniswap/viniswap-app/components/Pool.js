@@ -9,9 +9,11 @@ import {
   wethAllowance,
 } from "../utils/queries";
 import {
+  ADD_OR_REMOVE_LIQUIDITY,
   CONNECT_WALLET,
   ENTER_AMOUNT,
   INCREASE_ALLOWANCE,
+  SELECT_PAIR,
   SWAP,
   getSwapBtnClassName,
   notifyError,
@@ -33,6 +35,7 @@ import {
   coinAddresses,
 } from "../utils/SupportedCoins";
 import { Dropdown } from "@nextui-org/react";
+import LiquidityModal from "./LiquidityModal";
 
 const Pool = () => {
   const whitelisted = whitelistedPools;
@@ -41,6 +44,19 @@ const Pool = () => {
   const { pools } = usePools();
   const [reserves, setReserves] = useState({});
   const { openConnectModal } = useConnectModal();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleAddLiquidity = (tokenAAmount, tokenBAmount) => {
+    console.log("Agregar Liquidez", tokenAAmount, tokenBAmount);
+
+    setIsModalOpen(false);
+  };
+
+  const handleRemoveLiquidity = (liquidityAmount, removePercentage) => {
+    console.log("Remover Liquidez", liquidityAmount, removePercentage);
+
+    setIsModalOpen(false);
+  };
 
   const [srcToken, setSrcToken] = useState({
     name: "Select a token",
@@ -90,8 +106,10 @@ const Pool = () => {
 
     if (isWhitelisted) {
       console.log(`Pair (${address0}, ${address1}) is whitelisted`);
+      setSwapBtnText(ADD_OR_REMOVE_LIQUIDITY);
     } else {
       console.log(`Pair (${address0}, ${address1}) is not whitelisted`);
+      setSwapBtnText(SELECT_PAIR);
     }
 
     return !!isWhitelisted;
@@ -119,10 +137,12 @@ const Pool = () => {
     return poolData;
   };
 
+  const handleAddOrRemoveLiquidity = () => {};
+
   useEffect(() => {
     if (!address) setSwapBtnText(CONNECT_WALLET);
-    else if (!inputValue || !outputValue) setSwapBtnText(ENTER_AMOUNT);
-    else setSwapBtnText(SWAP);
+    else if (!inputValue || !outputValue) setSwapBtnText(SELECT_PAIR);
+    // else if (inputValue && outputValue) setSwapBtnText(ADD_OR_REMOVE_LIQUIDITY);
   }, [inputValue, outputValue, address]);
 
   useEffect(() => {
@@ -245,7 +265,7 @@ const Pool = () => {
   return (
     <div className="p-4 translate-y-20 rounded-3xl w-full max-w-[500px] bg-zinc-900 mt-20">
       <div className="flex items-center justify-between  px-1 my-4">
-        <p>Pool</p>
+        <p>Liquidity Pool</p>
         <CogIcon className="h-6" style={{ cursor: "pointer" }} />
       </div>
 
@@ -261,7 +281,8 @@ const Pool = () => {
         className={getSwapBtnClassName()}
         onClick={() => {
           if (swapBtnText === INCREASE_ALLOWANCE) handleIncreaseAllowance();
-          else if (swapBtnText === SWAP) handleSwap();
+          else if (swapBtnText === ADD_OR_REMOVE_LIQUIDITY)
+            setIsModalOpen(true);
           else if (swapBtnText === CONNECT_WALLET) openConnectModal();
         }}
       >
@@ -271,6 +292,13 @@ const Pool = () => {
       {txPending && <TransactionStatus />}
 
       <Toaster />
+
+      <LiquidityModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddLiquidity={handleAddLiquidity}
+        onRemoveLiquidity={handleRemoveLiquidity}
+      />
     </div>
   );
 };
