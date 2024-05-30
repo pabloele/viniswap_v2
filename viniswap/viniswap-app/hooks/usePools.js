@@ -7,10 +7,10 @@ import {
 
 import { toEth } from "../utils/ether-utils";
 import { whitelistedPools } from "../utils/whitelistedPools";
-
+import { getCoinName } from "../utils/SupportedCoins";
 export const usePools = () => {
   const whitelisted = whitelistedPools;
-  console.log(whitelisted);
+
   const [pools, setPools] = useState([]);
 
   useEffect(() => {
@@ -35,6 +35,8 @@ export const usePools = () => {
             timeStamp: reserves[2].toString(),
             token0: tokenAddress0,
             token1: tokenAddress1,
+            name0: getCoinName(tokenAddress0),
+            name1: getCoinName(tokenAddress1),
           };
           console.log(poolObj);
           poolsArray.push({ ...poolObj });

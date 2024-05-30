@@ -23,3 +23,7 @@ export const getCoinAddress = (name) => {
   const coin = coinAddresses.find((coin) => coin.name === name);
   return coin?.address || "";
 };
+export const getCoinName = (address) => {
+  const coin = coinAddresses.find((coin) => coin.address === address);
+  return coin?.name || "";
+};

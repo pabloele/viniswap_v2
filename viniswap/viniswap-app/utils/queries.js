@@ -6,6 +6,7 @@ import {
   pairContract,
 } from "./contract";
 import { toEth, toWei } from "./ether-utils";
+import { getCoinName } from "./SupportedCoins";
 
 //Viniswap
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
@@ -268,4 +269,65 @@ export const lpTokenBalance = async (pairAddress) => {
   } catch (error) {
     console.log(error);
   }
+};
+
+export const addLiquidity = async (
+  tokenAAddress,
+  tokenBAddress,
+  amountAdesired,
+  amountBdesired,
+  amountAMin,
+  amountBMin
+) => {
+  // const exactTokenAmount = Math.floor(tokenAmount);
+  // console.log(exactTokenAmount);
+
+  const allowanceAStatus = await allowanceStatus(tokenAAddress);
+  const allowanceBStatus = await allowanceStatus(tokenBAddress);
+
+  console.log("Allowance status: ", allowanceAStatus, allowanceBStatus);
+  const routerObj = await routerContract();
+  const signer = await routerObj.provider.getSigner();
+  if (!routerObj) {
+    console.error("No se pudo obtener el contrato del router");
+    return;
+  }
+
+  // const signer = await routerObj.provider.getSigner();
+  // const initialTokenBalance = await tokenBalance();
+  // const initialWethBalance = await wethBalance();
+  // console.log(initialTokenBalance, initialWethBalance);
+
+  try {
+    const tx = await routerObj
+      .connect(signer)
+      .addLiquidity(
+        tokenAAddress,
+        tokenBAddress,
+        toWei(amountAdesired.toString()),
+        toWei(amountBdesired.toString()),
+        "0",
+        "0",
+        signer.getAddress(),
+        Math.floor(Date.now() / 1000) + 60 * 10
+      );
+    console.log("hola");
+    const receipt = await tx.wait();
+    console.log(receipt);
+    const afterSwapTokenBalance = await tokenBalance();
+    const afterSwapWethBalance = await wethBalance();
+    console.log(afterSwapTokenBalance, afterSwapWethBalance);
+    return receipt;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const allowanceStatus = async (tokenAddress) => {
+  let allowance = 0;
+  const name = getCoinName(tokenAddress);
+  if (name === "ETH") allowance = await wethAllowance();
+  else allowance = await tokenAllowance();
+  console.log(allowance);
+  return allowance;
 };

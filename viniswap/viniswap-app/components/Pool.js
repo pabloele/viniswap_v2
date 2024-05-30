@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  addLiquidity,
   getTokenPrice,
   increaseTokenAllowance,
   increaseWethAllowance,
@@ -50,8 +51,42 @@ const Pool = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [signerBalances, setSignerBalances] = useState({});
 
+  const increaseAllowance = async (amount, token) => {
+    try {
+      if (token.name === "ETH") {
+        const receipt = await increaseWethAllowance(amount);
+        console.log(receipt);
+        return receipt;
+      } else {
+        const receipt = await increaseTokenAllowance(amount);
+        console.log(receipt);
+        return receipt;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleAddLiquidity = async (tokenAAmount, tokenBAmount) => {
-    console.log("Agregar Liquidez", tokenAAmount, tokenBAmount);
+    try {
+      const { token0, token1, reverse } = reserves;
+
+      const allowanceA = await increaseAllowance(tokenAAmount, srcToken);
+      const allowanceB = await increaseAllowance(tokenBAmount, destToken);
+
+      const receipt = await addLiquidity(
+        token0,
+        token1,
+        reverse ? tokenBAmount : tokenAAmount,
+        reverse ? tokenAAmount : tokenBAmount,
+        0,
+        0
+      );
+
+      console.log(receipt);
+    } catch (error) {
+      console.log(error);
+    }
 
     setIsModalOpen(false);
   };
@@ -120,8 +155,6 @@ const Pool = () => {
   };
 
   const getPoolReserves = ({ srcToken, destToken }) => {
-    console.log(srcToken.address, destToken.address);
-
     if (!pairIsWhitelisted(srcToken.address, destToken.address)) {
       setReserves({});
       return;
@@ -137,7 +170,7 @@ const Pool = () => {
     const reverse = pool?.token0 !== srcToken?.address;
     const poolData = { ...pool, reverse: reverse };
     setReserves(poolData);
-    console.log(poolData);
+
     return poolData;
   };
 
@@ -219,7 +252,7 @@ const Pool = () => {
         throw error;
       });
   };
-  const handleOpenModal = async () => {
+  const handleOpenModal = () => {
     getBalances(srcToken, destToken, reserves)
       .then((balances) => {
         setSignerBalances({ ...balances });
