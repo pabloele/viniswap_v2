@@ -1,6 +1,6 @@
 export const MTB24 = "MTB24";
 export const WETH = "ETH";
-
+export const TT0 = "TT0";
 export const DEFAULT_VALUE = "Select a token";
 // export const DEFAULT_VALUE = { name: "Select a token", address: "" };
 
@@ -12,6 +12,10 @@ export const coinAddresses = [
   {
     name: MTB24,
     address: process.env.NEXT_PUBLIC_MTB24_ADDRESS,
+  },
+  {
+    name: TT0,
+    address: "0xc53c298c1f2e85579d4fDf7aFaC2b9429e9DdE58",
   },
 ];
 

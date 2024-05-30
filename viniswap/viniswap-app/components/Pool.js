@@ -3,10 +3,13 @@ import {
   getTokenPrice,
   increaseTokenAllowance,
   increaseWethAllowance,
+  lpTokenBalance,
   swapTokensToWeth,
   swapWethToTokens,
   tokenAllowance,
+  tokenBalance,
   wethAllowance,
+  wethBalance,
 } from "../utils/queries";
 import {
   ADD_OR_REMOVE_LIQUIDITY,
@@ -45,8 +48,9 @@ const Pool = () => {
   const [reserves, setReserves] = useState({});
   const { openConnectModal } = useConnectModal();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [signerBalances, setSignerBalances] = useState({});
 
-  const handleAddLiquidity = (tokenAAmount, tokenBAmount) => {
+  const handleAddLiquidity = async (tokenAAmount, tokenBAmount) => {
     console.log("Agregar Liquidez", tokenAAmount, tokenBAmount);
 
     setIsModalOpen(false);
@@ -137,8 +141,6 @@ const Pool = () => {
     return poolData;
   };
 
-  const handleAddOrRemoveLiquidity = () => {};
-
   useEffect(() => {
     if (!address) setSwapBtnText(CONNECT_WALLET);
     else if (!inputValue || !outputValue) setSwapBtnText(SELECT_PAIR);
@@ -157,27 +159,6 @@ const Pool = () => {
 
     getReserves();
   }, [destToken, srcToken, setDestToken, setSrcToken]);
-
-  useEffect(() => {
-    const fetchPriceAndPopulateInput = async () => {
-      const price = await getTokenPrice();
-
-      if (!isReversed.current) {
-        populateInputValue({
-          price,
-          destToken,
-          srcToken,
-          outputValue,
-          setInputValue,
-        });
-      }
-
-      if (outputValue.length === 0) setInputValue("");
-      if (isReversed.current) isReversed.current = false;
-    };
-
-    fetchPriceAndPopulateInput();
-  }, [outputValue, srcToken]);
 
   const PoolField = ({ obj }) => {
     const {
@@ -208,12 +189,52 @@ const Pool = () => {
     );
   };
 
-  const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
-    let menu = [];
+  const getBalances = (srcToken, destToken, reserves) => {
+    const srcBalancePromise =
+      srcToken.name === "ETH" ? wethBalance() : tokenBalance(srcToken.address);
+    const destBalancePromise =
+      destToken.name === "ETH"
+        ? wethBalance()
+        : tokenBalance(destToken.address);
+    const lpBalancePromise = lpTokenBalance(reserves.address);
 
-    coinAddresses.map((coin) => {
-      menu = [...menu, { key: coin.name, name: coin.name }];
-    });
+    return Promise.all([
+      srcBalancePromise,
+      destBalancePromise,
+      lpBalancePromise,
+    ])
+      .then(([srcBalance, destBalance, lpBalance]) => {
+        console.log("Source Token Balance:", srcBalance);
+        console.log("Destination Token Balance:", destBalance);
+        console.log("LP Token Balance:", lpBalance);
+
+        return {
+          srcBalance,
+          destBalance,
+          lpBalance,
+        };
+      })
+      .catch((error) => {
+        console.error("Failed to get balances:", error);
+        throw error;
+      });
+  };
+  const handleOpenModal = async () => {
+    getBalances(srcToken, destToken, reserves)
+      .then((balances) => {
+        setSignerBalances({ ...balances });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    setIsModalOpen(true);
+  };
+
+  const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
+    const menu = coinAddresses.map((coin) => ({
+      key: coin.name,
+      name: coin.name,
+    }));
 
     const [selectedItem, setSelectedItem] = useState();
     const [menuItems, setMenuItems] = useState(getFilteredItems(ignoreValue));
@@ -234,8 +255,8 @@ const Pool = () => {
       <Dropdown>
         <Dropdown.Button
           css={{
-            backgroundColor:
-              selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
+            backgroundColor: "#2c2f36",
+            // selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
           }}
         >
           {selectedItem}
@@ -280,9 +301,8 @@ const Pool = () => {
       <button
         className={getSwapBtnClassName()}
         onClick={() => {
-          if (swapBtnText === INCREASE_ALLOWANCE) handleIncreaseAllowance();
-          else if (swapBtnText === ADD_OR_REMOVE_LIQUIDITY)
-            setIsModalOpen(true);
+          if (swapBtnText === ADD_OR_REMOVE_LIQUIDITY) handleOpenModal();
+          // setIsModalOpen(true);
           else if (swapBtnText === CONNECT_WALLET) openConnectModal();
         }}
       >
@@ -298,6 +318,10 @@ const Pool = () => {
         onClose={() => setIsModalOpen(false)}
         onAddLiquidity={handleAddLiquidity}
         onRemoveLiquidity={handleRemoveLiquidity}
+        srcToken={srcToken}
+        destToken={destToken}
+        signerBalances={signerBalances}
+        reserves={reserves}
       />
     </div>
   );

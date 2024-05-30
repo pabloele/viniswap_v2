@@ -1,14 +1,19 @@
 import { BigNumber, ethers } from "ethers";
-import { routerContract, mtb24Contract, wethContract } from "./contract";
+import {
+  routerContract,
+  mtb24Contract,
+  wethContract,
+  pairContract,
+} from "./contract";
 import { toEth, toWei } from "./ether-utils";
+
+//Viniswap
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
 const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_MTB24_ADDRESS;
 
-//Viniswap
-
-export const tokenBalance = async () => {
+export const tokenBalance = async (tokenAddress = TOKEN_ADDRESS) => {
   try {
-    const tokenContractObj = await mtb24Contract(TOKEN_ADDRESS);
+    const tokenContractObj = await mtb24Contract(tokenAddress);
     const routerObj = await routerContract();
     const walletAddress = await routerObj.signer.getAddress();
 
@@ -248,3 +253,19 @@ export const swapWethToTokens = async (tokenAmount) => {
 };
 
 // swapWethToTokens();
+
+export const lpTokenBalance = async (pairAddress) => {
+  try {
+    const pairContractObj = await pairContract({ pairAddress });
+    const routerObj = await routerContract();
+    const walletAddress = await routerObj.signer.getAddress();
+
+    const balance = await pairContractObj.balanceOf(walletAddress);
+    const formatedBalance = toEth(balance).toString();
+
+    console.log(formatedBalance);
+    return formatedBalance;
+  } catch (error) {
+    console.log(error);
+  }
+};

@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 
 import { Dropdown } from "@nextui-org/react";
-import { WETH, MTB24, DEFAULT_VALUE } from "../utils/SupportedCoins";
+import {
+  WETH,
+  MTB24,
+  DEFAULT_VALUE,
+  coinAddresses,
+} from "../utils/SupportedCoins";
 
 const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
-  const menu = [
-    { key: WETH, name: WETH },
-    { key: MTB24, name: MTB24 },
-  ];
+  const menu = coinAddresses.map((coin) => ({
+    key: coin.name,
+    name: coin.name,
+  }));
 
   const [selectedItem, setSelectedItem] = useState();
   const [menuItems, setMenuItems] = useState(getFilteredItems(ignoreValue));
@@ -29,7 +34,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
       <Dropdown.Button
         css={{
           backgroundColor:
-            selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
+            selectedItem === DEFAULT_VALUE ? "#840c4a" : "#2c2f36",
         }}
       >
         {selectedItem}
