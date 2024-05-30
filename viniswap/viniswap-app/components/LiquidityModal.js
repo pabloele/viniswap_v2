@@ -81,9 +81,13 @@ const LiquidityModal = ({
       isExceedingBalance(amounts.tokenAAmount, signerBalances.srcBalance) ||
       isExceedingBalance(amounts.tokenBAmount, signerBalances.destBalance)
     ) {
-      console.log("hola");
       return;
     } else onAddLiquidity(amounts.tokenAAmount, amounts.tokenBAmount);
+  };
+
+  const handleRemoveLiquidity = async () => {
+    // controlar el caso de que el usuario no tenga liquidez
+    onRemoveLiquidity(liquidityAmount);
   };
 
   return (
@@ -201,9 +205,7 @@ const LiquidityModal = ({
             </div>
             <button
               className="w-full p-2 bg-[#44162e] rounded-xl h-[3rem] hover:bg-[#351223] text-gray-300"
-              onClick={() =>
-                onRemoveLiquidity(liquidityAmount, removePercentage)
-              }
+              onClick={handleRemoveLiquidity}
             >
               Remove
             </button>

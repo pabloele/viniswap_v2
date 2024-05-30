@@ -4,7 +4,9 @@ import {
   getTokenPrice,
   increaseTokenAllowance,
   increaseWethAllowance,
+  lpTokenAllowance,
   lpTokenBalance,
+  removeLiquidity,
   swapTokensToWeth,
   swapWethToTokens,
   tokenAllowance,
@@ -40,6 +42,7 @@ import {
 } from "../utils/SupportedCoins";
 import { Dropdown } from "@nextui-org/react";
 import LiquidityModal from "./LiquidityModal";
+import { toWei } from "../utils/ether-utils";
 
 const Pool = () => {
   const whitelisted = whitelistedPools;
@@ -91,9 +94,34 @@ const Pool = () => {
     setIsModalOpen(false);
   };
 
-  const handleRemoveLiquidity = (liquidityAmount, removePercentage) => {
-    console.log("Remover Liquidez", liquidityAmount, removePercentage);
+  const handleRemoveLiquidity = async (lpAmount) => {
+    console.log(reserves);
+    try {
+      const { address, token0, token1 } = reserves;
+      // console.log(address);
 
+      // // const allowance = await lpTokenAllowance({ liquidityAmount, address });
+
+      // console.log(
+      //   "***********************************",
+      //   toWei(lpAmount),
+      //   typeof lpAmount
+
+      const receipt = await removeLiquidity(token0, token1, lpAmount);
+
+      // const receipt = await addLiquidity(
+      //   token0,
+      //   token1,
+      //   reverse ? tokenBAmount : tokenAAmount,
+      //   reverse ? tokenAAmount : tokenBAmount,
+      //   0,
+      //   0
+      // );
+
+      console.log(receipt);
+    } catch (error) {
+      console.log(error);
+    }
     setIsModalOpen(false);
   };
 

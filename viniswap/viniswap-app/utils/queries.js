@@ -279,24 +279,15 @@ export const addLiquidity = async (
   amountAMin,
   amountBMin
 ) => {
-  // const exactTokenAmount = Math.floor(tokenAmount);
-  // console.log(exactTokenAmount);
-
   const allowanceAStatus = await allowanceStatus(tokenAAddress);
   const allowanceBStatus = await allowanceStatus(tokenBAddress);
 
-  console.log("Allowance status: ", allowanceAStatus, allowanceBStatus);
   const routerObj = await routerContract();
   const signer = await routerObj.provider.getSigner();
   if (!routerObj) {
     console.error("No se pudo obtener el contrato del router");
     return;
   }
-
-  // const signer = await routerObj.provider.getSigner();
-  // const initialTokenBalance = await tokenBalance();
-  // const initialWethBalance = await wethBalance();
-  // console.log(initialTokenBalance, initialWethBalance);
 
   try {
     const tx = await routerObj
@@ -311,7 +302,7 @@ export const addLiquidity = async (
         signer.getAddress(),
         Math.floor(Date.now() / 1000) + 60 * 10
       );
-    console.log("hola");
+
     const receipt = await tx.wait();
     console.log(receipt);
     const afterSwapTokenBalance = await tokenBalance();
@@ -330,4 +321,64 @@ export const allowanceStatus = async (tokenAddress) => {
   else allowance = await tokenAllowance();
   console.log(allowance);
   return allowance;
+};
+
+export const removeLiquidity = async (
+  tokenAAddress,
+  tokenBAddress,
+  lpAmount
+) => {
+  const routerObj = await routerContract();
+
+  const signer = await routerObj.provider.getSigner();
+  if (!routerObj) {
+    console.error("No se pudo obtener el contrato del router");
+    return;
+  }
+
+  const formattedAmount = toWei(lpAmount);
+
+  try {
+    const tx = await routerObj
+      .connect(signer)
+      .removeLiquidity(
+        tokenAAddress,
+        tokenBAddress,
+        formattedAmount,
+        "0",
+        "0",
+        signer.getAddress(),
+        Math.floor(Date.now() / 1000) + 60 * 10
+      );
+
+    const receipt = await tx.wait();
+    console.log(receipt);
+
+    return receipt;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const lpTokenAllowance = async ({ liquidityAmount, address }) => {
+  console.log(liquidityAmount, address);
+  try {
+    const pairContractObj = await pairContract({ pairAddress: address });
+
+    const routerObj = await routerContract();
+    const routerAddress = routerObj.address;
+    console.log(routerAddress);
+    const walletAddress = await routerObj.signer.getAddress();
+    const formattedAmount = toWei(liquidityAmount);
+    console.log(formattedAmount);
+    const receipt = await pairContractObj.approve(
+      routerAddress,
+      formattedAmount
+    );
+    console.log(receipt);
+    return receipt;
+    return;
+  } catch (error) {
+    console.log(error);
+  }
 };
