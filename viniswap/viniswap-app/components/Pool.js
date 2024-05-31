@@ -43,7 +43,7 @@ import {
 import { Dropdown } from "@nextui-org/react";
 import LiquidityModal from "./LiquidityModal";
 import { toWei } from "../utils/ether-utils";
-
+import { RiRefreshLine } from "react-icons/ri";
 const Pool = () => {
   const whitelisted = whitelistedPools;
 
@@ -53,6 +53,7 @@ const Pool = () => {
   const { openConnectModal } = useConnectModal();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [signerBalances, setSignerBalances] = useState({});
+  const [updateTrigger, setUpdateTrigger] = useState(0);
 
   const increaseAllowance = async (amount, token) => {
     try {
@@ -85,44 +86,38 @@ const Pool = () => {
         0,
         0
       );
-
-      console.log(receipt);
     } catch (error) {
       console.log(error);
     }
 
     setIsModalOpen(false);
+    setTimeout(() => {
+      console.log("rerendering");
+      setUpdateTrigger(updateTrigger + 1);
+    }, [10000]);
   };
 
   const handleRemoveLiquidity = async (lpAmount) => {
     console.log(reserves);
     try {
       const { address, token0, token1 } = reserves;
-      // console.log(address);
 
-      // // const allowance = await lpTokenAllowance({ liquidityAmount, address });
-
-      // console.log(
-      //   "***********************************",
-      //   toWei(lpAmount),
-      //   typeof lpAmount
+      const allowance = await lpTokenAllowance({
+        liquidityAmount: lpAmount,
+        address,
+      });
 
       const receipt = await removeLiquidity(token0, token1, lpAmount);
-
-      // const receipt = await addLiquidity(
-      //   token0,
-      //   token1,
-      //   reverse ? tokenBAmount : tokenAAmount,
-      //   reverse ? tokenAAmount : tokenBAmount,
-      //   0,
-      //   0
-      // );
 
       console.log(receipt);
     } catch (error) {
       console.log(error);
     }
     setIsModalOpen(false);
+    setTimeout(() => {
+      console.log("rerendering");
+      setUpdateTrigger(updateTrigger + 1);
+    }, [10000]);
   };
 
   const [srcToken, setSrcToken] = useState({
@@ -213,13 +208,12 @@ const Pool = () => {
       const srcTokenAddress = getCoinAddress(srcToken);
       const destTokenAddress = getCoinAddress(destToken);
       const reserves = getPoolReserves({ srcToken, destToken });
-      console.log(reserves);
 
       if (inputValue.length === 0) setOutputValue("");
     };
 
     getReserves();
-  }, [destToken, srcToken, setDestToken, setSrcToken]);
+  }, [destToken, srcToken, setDestToken, setSrcToken, updateTrigger]);
 
   const PoolField = ({ obj }) => {
     const {
@@ -348,7 +342,14 @@ const Pool = () => {
     <div className="p-4 translate-y-20 rounded-3xl w-full max-w-[500px] bg-zinc-900 mt-20">
       <div className="flex items-center justify-between  px-1 my-4">
         <p>Liquidity Pool</p>
-        <CogIcon className="h-6" style={{ cursor: "pointer" }} />
+        <div className="flex flex-row ">
+          <RiRefreshLine
+            className="h-6 mr-2"
+            style={{ cursor: "pointer" }}
+            onClick={() => setUpdateTrigger(updateTrigger + 1)}
+          />
+          <CogIcon className="h-6" style={{ cursor: "pointer" }} />
+        </div>
       </div>
 
       <div className="flex bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">

@@ -377,7 +377,6 @@ export const lpTokenAllowance = async ({ liquidityAmount, address }) => {
     );
     console.log(receipt);
     return receipt;
-    return;
   } catch (error) {
     console.log(error);
   }
