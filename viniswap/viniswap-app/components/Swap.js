@@ -29,6 +29,7 @@ import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
 import { toEth, toWei } from "../utils/ether-utils";
 import { useAccount } from "wagmi";
 import { Toaster } from "react-hot-toast";
+import NavItems from "./NavItems";
 
 const Swap = () => {
   const { address } = useAccount();
@@ -195,6 +196,9 @@ const Swap = () => {
 
   return (
     <div className="p-4 translate-y-20 rounded-3xl w-full max-w-[500px] bg-zinc-900 mt-20">
+      <div className="hidden md:flex md:px-4">
+        <NavItems />
+      </div>
       <div className="flex items-center justify-between  px-1 my-4">
         <p>Swap</p>
         <CogIcon className="h-6" />
@@ -226,7 +230,7 @@ const Swap = () => {
 
       {txPending && <TransactionStatus />}
 
-      <Toaster />
+      {/* <Toaster /> */}
     </div>
   );
 };

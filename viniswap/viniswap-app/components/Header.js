@@ -17,23 +17,29 @@ const Header = () => {
   };
 
   return (
-    <div className="fixed left-0 top-0 w-full  py-4  items-center bg-[#2D242F]">
-      <div className="flex items-center justify-center bg-[#2D242F] ">
-        <div className="flex flex-col my-4">
+    <div
+      className="fixed left-0 top-0 w-full  py-4  items-center 
+      bg-[#2D242F]
+    
+    "
+    >
+      {/* bg-[#2D242F] */}
+      <div className="flex items-center justify-between bg-[#2D242F] ">
+        <div className="flex flex-col my-4 bg-[#2D242F] w-full justify-between px-2 md:px-16">
           <div className="flex items-center justify-between ">
             <img src="./mtb.png" className="h-12" />
 
-            <div className="hidden md:flex md:px-4">
+            {/* <div className="hidden md:flex md:px-4">
               <NavItems />
-            </div>
+            </div> */}
             <div className="flex rounded-3xl">
               <ConnectButton className="flex rounded-3xl" />
             </div>
           </div>
 
-          <div className="flex items-center col-start-2 col-end-12 md:hidden my-4 ">
+          {/* <div className="flex items-center col-start-2 col-end-12 md:hidden my-4 ">
             <NavItems />
-          </div>
+          </div> */}
         </div>
         <div className="flex items-center justify-center col-start-6 col-end-8">
           {tokenBalComp}
