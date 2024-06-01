@@ -1,5 +1,4 @@
 import Header from "../components/Header";
-import NavBar from "../components/Navbar";
 
 const HomeLayout = ({ children }) => {
   return (
