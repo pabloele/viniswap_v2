@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "../styles/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import merge from "lodash.merge";
@@ -68,6 +69,14 @@ const myTheme = merge(midnightTheme(), {
 });
 
 function MyApp({ Component, pageProps }) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  if (!isClient) {
+    return null; //loader
+  }
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains} theme={myTheme}>
