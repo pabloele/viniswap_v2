@@ -1,10 +1,21 @@
+import { useEffect, useState } from "react";
 import Pool from "../../components/Pool";
 import HomeLayout from "../../layout/HomeLayout";
 
-export default function index() {
+export default function Index() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
-    <HomeLayout>
-      <Pool />
-    </HomeLayout>
+    <>
+      {isClient && (
+        <HomeLayout>
+          <Pool />
+        </HomeLayout>
+      )}
+    </>
   );
 }

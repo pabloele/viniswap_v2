@@ -1,4 +1,7 @@
+"use client";
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+
 import {
   addLiquidity,
   getTokenPrice,
@@ -44,12 +47,14 @@ import { Dropdown } from "@nextui-org/react";
 import LiquidityModal from "./LiquidityModal";
 import { toWei } from "../utils/ether-utils";
 import { RiRefreshLine } from "react-icons/ri";
+import { FiRefreshCcw } from "react-icons/fi";
 import NavItems from "./NavItems";
 const Pool = () => {
   const whitelisted = whitelistedPools;
 
   const { address } = useAccount();
-  const { pools } = usePools();
+  const { pools, refreshAmounts, refreshDisabled, refresh } = usePools();
+
   const [reserves, setReserves] = useState({});
   const { openConnectModal } = useConnectModal();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,6 +77,11 @@ const Pool = () => {
     }
   };
 
+  const handleRefresh = () => {
+    // if (refreshDisabled) return;
+
+    refreshAmounts();
+  };
   const handleAddLiquidity = async (tokenAAmount, tokenBAmount) => {
     try {
       const { token0, token1, reverse } = reserves;
@@ -92,10 +102,7 @@ const Pool = () => {
     }
 
     setIsModalOpen(false);
-    setTimeout(() => {
-      console.log("rerendering");
-      setUpdateTrigger(updateTrigger + 1);
-    }, [10000]);
+    handleRefresh();
   };
 
   const handleRemoveLiquidity = async (lpAmount) => {
@@ -115,16 +122,14 @@ const Pool = () => {
       console.log(error);
     }
     setIsModalOpen(false);
-    setTimeout(() => {
-      console.log("rerendering");
-      setUpdateTrigger(updateTrigger + 1);
-    }, [10000]);
+    handleRefresh();
   };
 
   const [srcToken, setSrcToken] = useState({
     name: "Select a token",
     address: "",
   });
+
   const [destToken, setDestToken] = useState({
     name: "Select a token",
     address: "",
@@ -214,7 +219,14 @@ const Pool = () => {
     };
 
     getReserves();
-  }, [destToken, srcToken, setDestToken, setSrcToken, updateTrigger]);
+  }, [
+    destToken,
+    srcToken,
+    setDestToken,
+    setSrcToken,
+    refresh,
+    refreshDisabled,
+  ]);
 
   const PoolField = ({ obj }) => {
     const {
@@ -347,10 +359,14 @@ const Pool = () => {
       <div className="flex items-center justify-between  px-1 my-4">
         <p>Liquidity Pool</p>
         <div className="flex flex-row ">
-          <RiRefreshLine
+          <FiRefreshCcw
             className="h-6 mr-2"
-            style={{ cursor: "pointer" }}
-            onClick={() => setUpdateTrigger(updateTrigger + 1)}
+            style={
+              refreshDisabled
+                ? { cursor: "not-allowed", opacity: 0.2 }
+                : { cursor: "pointer" }
+            }
+            onClick={handleRefresh}
           />
           <CogIcon className="h-6" style={{ cursor: "pointer" }} />
         </div>
@@ -393,4 +409,4 @@ const Pool = () => {
   );
 };
 
-export default Pool;
+export default dynamic(() => Promise.resolve(Pool), { ssr: false });

@@ -1,4 +1,7 @@
+"use client";
+
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   routerContract,
   factoryContract,
@@ -8,16 +11,18 @@ import {
 import { toEth } from "../utils/ether-utils";
 import { whitelistedPools } from "../utils/whitelistedPools";
 import { getCoinName } from "../utils/SupportedCoins";
+
 export const usePools = () => {
   const whitelisted = whitelistedPools;
 
   const [pools, setPools] = useState([]);
+  const [refresh, setRefresh] = useState(0);
+  const [refreshDisabled, setRefreshDisabled] = useState(false);
 
   useEffect(() => {
     const fetchPools = async () => {
       try {
         const factory = await factoryContract();
-
         const pairsCount = await factory.allPairsLength();
 
         const poolsArray = [];
@@ -49,8 +54,19 @@ export const usePools = () => {
     };
 
     fetchPools();
-  }, []);
+  }, [refresh]);
+
+  const refreshAmounts = () => {
+    console.log("refreshing reserves...");
+    if (!refreshDisabled) {
+      setRefresh(refresh + 1);
+      setRefreshDisabled(true);
+      setTimeout(() => {
+        setRefreshDisabled(false);
+      }, 10000);
+    }
+  };
 
   // TODO restrict to whitelisted pools
-  return { pools };
+  return { pools, setRefresh, refresh, refreshAmounts, refreshDisabled };
 };
