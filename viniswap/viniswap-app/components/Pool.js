@@ -177,7 +177,9 @@ const Pool = () => {
       setSwapBtnText(ADD_OR_REMOVE_LIQUIDITY);
     } else {
       console.log(`Pair (${address0}, ${address1}) is not whitelisted`);
-      setSwapBtnText(SELECT_PAIR);
+
+      if (!address) setSwapBtnText(CONNECT_WALLET);
+      else setSwapBtnText(SELECT_PAIR);
     }
 
     return !!isWhitelisted;
@@ -409,4 +411,4 @@ const Pool = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(Pool), { ssr: false });
+export default Pool;

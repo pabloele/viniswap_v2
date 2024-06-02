@@ -71,7 +71,6 @@ const Swap = () => {
   const [txPending, setTxPending] = useState(false);
 
   useEffect(() => {
-    // Handling the text of the submit button
     if (!address) setSwapBtnText(CONNECT_WALLET);
     else if (!inputValue || !outputValue) setSwapBtnText(ENTER_AMOUNT);
     else setSwapBtnText(SWAP);
