@@ -324,7 +324,7 @@ export const removeLiquidity = async (
   }
 
   const formattedAmount = toWei(lpAmount);
-
+  console.log(formattedAmount);
   try {
     const tx = await routerObj
       .connect(signer)
@@ -389,6 +389,7 @@ export const wrapEth = async (amount) => {
 };
 
 export const unwrapEth = async (amount) => {
+  console.log(amount);
   try {
     const signer = new ethers.providers.Web3Provider(
       window.ethereum

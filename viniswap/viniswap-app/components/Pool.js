@@ -14,8 +14,10 @@ import {
   swapWethToTokens,
   tokenAllowance,
   tokenBalance,
+  unwrapEth,
   wethAllowance,
   wethBalance,
+  wrapEth,
 } from "../utils/queries";
 import {
   ADD_OR_REMOVE_LIQUIDITY,
@@ -64,7 +66,9 @@ const Pool = () => {
   const increaseAllowance = async (amount, token) => {
     try {
       if (token.name === "ETH") {
-        const receipt = await increaseWethAllowance(amount);
+        const depositReceipt = await wrapEth(amount);
+        console.log("deposit receipt", depositReceipt);
+        const receipt = await increaseWethAllowance(amount * 1.1);
         console.log(receipt);
         return receipt;
       } else {
@@ -107,6 +111,8 @@ const Pool = () => {
 
   const handleRemoveLiquidity = async (lpAmount) => {
     console.log(reserves);
+    const initialWethBalance = await wethBalance();
+    console.log(initialWethBalance);
     try {
       const { address, token0, token1 } = reserves;
 
@@ -115,9 +121,18 @@ const Pool = () => {
         address,
       });
 
+      await allowance.wait();
+      console.log("allowance granted to remove", lpAmount, allowance);
       const receipt = await removeLiquidity(token0, token1, lpAmount);
 
-      console.log(receipt);
+      console.log("liquidity successfully removed ", receipt);
+
+      const afterRemoveWethBalance = await wethBalance();
+      console.log(afterRemoveWethBalance);
+
+      const wethWitdrawAmount = afterRemoveWethBalance - initialWethBalance;
+      const witdrawReceipt = await unwrapEth(wethWitdrawAmount);
+      console.log("successfully unwrapped eth", witdrawReceipt);
     } catch (error) {
       console.log(error);
     }
