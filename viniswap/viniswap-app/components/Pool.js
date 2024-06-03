@@ -370,7 +370,7 @@ const Pool = () => {
             }
             onClick={handleRefresh}
           />
-          <CogIcon className="h-6" style={{ cursor: "pointer" }} />
+          {/* <CogIcon className="h-6" style={{ cursor: "pointer" }} /> */}
         </div>
       </div>
 

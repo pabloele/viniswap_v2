@@ -7,6 +7,7 @@ import {
 } from "./contract";
 import { toEth, toWei } from "./ether-utils";
 import { getCoinName } from "./SupportedCoins";
+import { wethABI } from "./abi";
 
 //Viniswap
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
@@ -113,7 +114,6 @@ export const increaseTokenAllowance = async (amount) => {
   }
 };
 
-// increaseTokenAllowance(0);
 export const increaseWethAllowance = async (amount) => {
   console.log(amount);
   try {
@@ -138,8 +138,6 @@ export const increaseWethAllowance = async (amount) => {
   }
 };
 
-// increaseWethAllowance(0);
-
 export const getTokenPrice = async () => {
   try {
     const routerObj = await routerContract(); // Obtener instancia del contrato del router
@@ -154,7 +152,7 @@ export const getTokenPrice = async () => {
     if (!amounts) {
       amounts = [0, 0];
     }
-    // El precio será la cantidad de WETH necesaria para recibir 1 unidad del token de salida
+    // Precio = la cantidad de WETH necesaria para recibir 1 unidad del token de salida
     const priceInWeth = ethers.utils.formatEther(amounts[1]);
     console.log("Precio del token en WETH:", priceInWeth);
 
@@ -164,10 +162,6 @@ export const getTokenPrice = async () => {
     throw error;
   }
 };
-
-// getTokenPrice();
-
-// increaseTokenAllowance();
 
 export const swapTokensToWeth = async (tokenAmount) => {
   const allowanceStatus = await tokenAllowance();
@@ -186,7 +180,7 @@ export const swapTokensToWeth = async (tokenAmount) => {
 
   try {
     const tx = await routerObj.connect(signer).swapExactTokensForTokens(
-      toWei(tokenAmount.toString()), // Cantidad exacta de tokens de entrada (1 token)
+      toWei(tokenAmount.toString()), // Cantidad exacta de tokens de entrada
 
       0, // Cantidad mínima de tokens de salida
       [
@@ -196,9 +190,6 @@ export const swapTokensToWeth = async (tokenAmount) => {
       ],
       signer.getAddress(), // Dirección del destinatario de los tokens de salida
       Math.floor(Date.now() / 1000) + 60 * 10 // Plazo de validez de la transacción
-      // {
-      //   gasLimit: 1000000,
-      // }
     );
     const result = await tx.wait();
     console.log(result);
@@ -209,8 +200,6 @@ export const swapTokensToWeth = async (tokenAmount) => {
     console.log(error);
   }
 };
-
-// swapTokensToWeth();
 
 export const swapWethToTokens = async (tokenAmount) => {
   const exactTokenAmount = Math.floor(tokenAmount);
@@ -252,8 +241,6 @@ export const swapWethToTokens = async (tokenAmount) => {
     console.log(error);
   }
 };
-
-// swapWethToTokens();
 
 export const lpTokenBalance = async (pairAddress) => {
   try {
@@ -379,5 +366,41 @@ export const lpTokenAllowance = async ({ liquidityAmount, address }) => {
     return receipt;
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const wrapEth = async (amount) => {
+  try {
+    const routerObj = await routerContract();
+    const signer = routerObj.provider.getSigner();
+    const wethContractObj = new ethers.Contract(WETH_ADDRESS, wethABI, signer);
+
+    const tx = await wethContractObj.deposit({
+      value: toWei(amount.toString()),
+    });
+
+    const receipt = await tx.wait();
+    console.log("Wrap ETH transaction receipt:", receipt);
+    return receipt;
+  } catch (error) {
+    console.error("Error wrapping ETH:", error);
+    throw error;
+  }
+};
+
+export const unwrapEth = async (amount) => {
+  try {
+    const signer = new ethers.providers.Web3Provider(
+      window.ethereum
+    ).getSigner();
+    const wethContractObj = new ethers.Contract(WETH_ADDRESS, wethABI, signer);
+
+    const tx = await wethContractObj.withdraw(toWei(amount.toString()));
+    const receipt = await tx.wait();
+    console.log("Unwrap ETH transaction receipt:", receipt);
+    return receipt;
+  } catch (error) {
+    console.error("Error unwrapping ETH:", error);
+    throw error;
   }
 };
