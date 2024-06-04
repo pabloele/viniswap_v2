@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 
 import {
   addLiquidity,
   getTokenPrice,
+  increaseAllowance,
   increaseTokenAllowance,
   increaseWethAllowance,
   lpTokenAllowance,
@@ -23,14 +23,11 @@ import {
   ADD_OR_REMOVE_LIQUIDITY,
   CONNECT_WALLET,
   ENTER_AMOUNT,
-  INCREASE_ALLOWANCE,
   SELECT_PAIR,
   SWAP,
   getSwapBtnClassName,
   notifyError,
   notifySuccess,
-  populateInputValue,
-  populateOutputValue,
 } from "../utils/swap-utils";
 import { CogIcon } from "@heroicons/react/outline";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
@@ -45,45 +42,45 @@ import {
   getCoinAddress,
   coinAddresses,
 } from "../utils/SupportedCoins";
-import { Dropdown } from "@nextui-org/react";
+
 import LiquidityModal from "./LiquidityModal";
 import { toWei } from "../utils/ether-utils";
 import { RiRefreshLine } from "react-icons/ri";
 import { FiRefreshCcw } from "react-icons/fi";
 import NavItems from "./NavItems";
+import { getBalances, pairIsWhitelisted } from "../utils/pools-utils";
+import PoolField from "./PoolField";
 const Pool = () => {
   const whitelisted = whitelistedPools;
 
   const { address } = useAccount();
-  const { pools, refreshAmounts, refreshDisabled, refresh } = usePools();
+  const {
+    pools,
+    setRefresh,
+    refresh,
+    refreshAmounts,
+    refreshDisabled,
+    reserves,
+    setReserves,
+    srcToken,
+    destToken,
+    setSrcToken,
+    setDestToken,
+    srcTokenObj,
+    destTokenObj,
+    isReversed,
+    setIsReversed,
+    inputValue,
+    setInputValue,
+    outputValue,
+    setOutputValue,
+  } = usePools();
 
-  const [reserves, setReserves] = useState({});
   const { openConnectModal } = useConnectModal();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [signerBalances, setSignerBalances] = useState({});
-  const [updateTrigger, setUpdateTrigger] = useState(0);
-
-  const increaseAllowance = async (amount, token) => {
-    try {
-      if (token.name === "ETH") {
-        const depositReceipt = await wrapEth(amount);
-        console.log("deposit receipt", depositReceipt);
-        const receipt = await increaseWethAllowance(amount * 1.1);
-        console.log(receipt);
-        return receipt;
-      } else {
-        const receipt = await increaseTokenAllowance(amount);
-        console.log(receipt);
-        return receipt;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const handleRefresh = () => {
-    // if (refreshDisabled) return;
-
     refreshAmounts();
   };
   const handleAddLiquidity = async (tokenAAmount, tokenBAmount) => {
@@ -140,68 +137,27 @@ const Pool = () => {
     handleRefresh();
   };
 
-  const [srcToken, setSrcToken] = useState({
-    name: "Select a token",
-    address: "",
-  });
-
-  const [destToken, setDestToken] = useState({
-    name: "Select a token",
-    address: "",
-  });
-
-  const [inputValue, setInputValue] = useState("");
-  const [outputValue, setOutputValue] = useState("");
-
-  const isReversed = useState(false);
-
-  const srcTokenObj = {
-    id: "srcToken",
-    // value: inputValue,
-    value: reserves.reverse ? reserves.reserves1 : reserves.reserves0,
-    setValue: setInputValue,
-    defaultValue: srcToken.name,
-    ignoreValue: destToken,
-    setToken: setSrcToken,
-  };
-
-  const destTokenObj = {
-    id: "destToken",
-    // value: outputValue,
-    value: reserves.reverse ? reserves.reserves0 : reserves.reserves1,
-    setValue: setOutputValue,
-    defaultValue: destToken.name,
-    ignoreValue: srcToken,
-    setToken: setDestToken,
-  };
-
   const [swapBtnText, setSwapBtnText] = useState(ENTER_AMOUNT);
   const [txPending, setTxPending] = useState(false);
 
-  const pairIsWhitelisted = (address0, address1) => {
-    const pair = [address0, address1];
-
-    const isWhitelisted = whitelistedPools.find(
-      (pool) =>
-        (pool[0] === address0 && pool[1] === address1) ||
-        (pool[0] === address1 && pool[1] === address0)
+  const getPoolReserves = ({ srcToken, destToken }) => {
+    const isWhitelisted = pairIsWhitelisted(
+      srcToken.address,
+      destToken.address
     );
 
     if (isWhitelisted) {
-      console.log(`Pair (${address0}, ${address1}) is whitelisted`);
+      console.log(
+        `Pair (${srcToken.address}, ${destToken.address}) is whitelisted`
+      );
       setSwapBtnText(ADD_OR_REMOVE_LIQUIDITY);
     } else {
-      console.log(`Pair (${address0}, ${address1}) is not whitelisted`);
+      console.log(
+        `Pair (${srcToken.address}, ${destToken.address}) is not whitelisted`
+      );
 
       if (!address) setSwapBtnText(CONNECT_WALLET);
       else setSwapBtnText(SELECT_PAIR);
-    }
-
-    return !!isWhitelisted;
-  };
-
-  const getPoolReserves = ({ srcToken, destToken }) => {
-    if (!pairIsWhitelisted(srcToken.address, destToken.address)) {
       setReserves({});
       return;
     }
@@ -223,7 +179,6 @@ const Pool = () => {
   useEffect(() => {
     if (!address) setSwapBtnText(CONNECT_WALLET);
     else if (!inputValue || !outputValue) setSwapBtnText(SELECT_PAIR);
-    // else if (inputValue && outputValue) setSwapBtnText(ADD_OR_REMOVE_LIQUIDITY);
   }, [inputValue, outputValue, address]);
 
   useEffect(() => {
@@ -245,65 +200,6 @@ const Pool = () => {
     refreshDisabled,
   ]);
 
-  const PoolField = ({ obj }) => {
-    const {
-      id,
-      value = "",
-      setValue,
-      defaultValue,
-      setToken,
-      ignoreValue,
-    } = obj;
-
-    return (
-      <div className="flex items-center rounded-xl">
-        <input
-          className="w-full outline-none h-8 px-2 appearance-none text-3xl bg-transparent"
-          type={"number"}
-          value={value}
-          placeholder={"0.0"}
-          onChange={(e) => setValue(e.target.value)}
-        />
-        <Selector
-          id={id}
-          setToken={setToken}
-          defaultValue={defaultValue}
-          ignoreValue={ignoreValue}
-        />
-      </div>
-    );
-  };
-
-  const getBalances = (srcToken, destToken, reserves) => {
-    const srcBalancePromise =
-      srcToken.name === "ETH" ? wethBalance() : tokenBalance(srcToken.address);
-    const destBalancePromise =
-      destToken.name === "ETH"
-        ? wethBalance()
-        : tokenBalance(destToken.address);
-    const lpBalancePromise = lpTokenBalance(reserves.address);
-
-    return Promise.all([
-      srcBalancePromise,
-      destBalancePromise,
-      lpBalancePromise,
-    ])
-      .then(([srcBalance, destBalance, lpBalance]) => {
-        console.log("Source Token Balance:", srcBalance);
-        console.log("Destination Token Balance:", destBalance);
-        console.log("LP Token Balance:", lpBalance);
-
-        return {
-          srcBalance,
-          destBalance,
-          lpBalance,
-        };
-      })
-      .catch((error) => {
-        console.error("Failed to get balances:", error);
-        throw error;
-      });
-  };
   const handleOpenModal = () => {
     getBalances(srcToken, destToken, reserves)
       .then((balances) => {
@@ -313,59 +209,6 @@ const Pool = () => {
         console.error(error);
       });
     setIsModalOpen(true);
-  };
-
-  const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
-    const menu = coinAddresses.map((coin) => ({
-      key: coin.name,
-      name: coin.name,
-    }));
-
-    const [selectedItem, setSelectedItem] = useState();
-    const [menuItems, setMenuItems] = useState(getFilteredItems(ignoreValue));
-
-    function getFilteredItems(ignoreValue) {
-      return menu.filter((item) => item.key !== ignoreValue);
-    }
-
-    useEffect(() => {
-      setSelectedItem(defaultValue);
-    }, [defaultValue]);
-
-    useEffect(() => {
-      setMenuItems(getFilteredItems(ignoreValue));
-    }, [ignoreValue]);
-
-    return (
-      <Dropdown>
-        <Dropdown.Button
-          css={{
-            backgroundColor: "#2c2f36",
-            // selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
-          }}
-        >
-          {selectedItem}
-        </Dropdown.Button>
-        <Dropdown.Menu
-          aria-label="Dynamic Actions"
-          items={menuItems}
-          onAction={(key) => {
-            setSelectedItem(key);
-            setToken({ name: key, address: getCoinAddress(key) });
-          }}
-        >
-          {(item) => (
-            <Dropdown.Item
-              aria-label={id}
-              key={item.key}
-              color={item.key === "delete" ? "error" : "default"}
-            >
-              {item.name}
-            </Dropdown.Item>
-          )}
-        </Dropdown.Menu>
-      </Dropdown>
-    );
   };
 
   return (

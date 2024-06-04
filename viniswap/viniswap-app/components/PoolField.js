@@ -1,22 +1,17 @@
-import React from "react";
-import Selector from "./Selector";
+import Selector from "./PoolSelector";
 
-const PoolField = React.forwardRef(({ obj }, inputRef) => {
+const PoolField = ({ obj }) => {
   const { id, value = "", setValue, defaultValue, setToken, ignoreValue } = obj;
 
   return (
     <div className="flex items-center rounded-xl">
       <input
-        ref={inputRef}
-        className={getInputClassname()}
+        className="w-full outline-none h-8 px-2 appearance-none text-3xl bg-transparent"
         type={"number"}
         value={value}
         placeholder={"0.0"}
-        onChange={(e) => {
-          setValue(e.target.value);
-        }}
+        onChange={(e) => setValue(e.target.value)}
       />
-
       <Selector
         id={id}
         setToken={setToken}
@@ -25,12 +20,6 @@ const PoolField = React.forwardRef(({ obj }, inputRef) => {
       />
     </div>
   );
-
-  function getInputClassname() {
-    let className =
-      " w-full outline-none h-8 px-2 appearance-none text-3xl bg-transparent";
-    return className;
-  }
-});
+};
 
 export default PoolField;

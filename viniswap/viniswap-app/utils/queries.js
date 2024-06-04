@@ -405,3 +405,21 @@ export const unwrapEth = async (amount) => {
     throw error;
   }
 };
+
+export const increaseAllowance = async (amount, token) => {
+  try {
+    if (token.name === "ETH") {
+      const depositReceipt = await wrapEth(amount);
+      console.log("deposit receipt", depositReceipt);
+      const receipt = await increaseWethAllowance(amount * 1.1);
+      console.log(receipt);
+      return receipt;
+    } else {
+      const receipt = await increaseTokenAllowance(amount);
+      console.log(receipt);
+      return receipt;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};

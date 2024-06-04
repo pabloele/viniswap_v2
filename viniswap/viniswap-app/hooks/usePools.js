@@ -10,7 +10,7 @@ import {
 
 import { toEth } from "../utils/ether-utils";
 import { whitelistedPools } from "../utils/whitelistedPools";
-import { getCoinName } from "../utils/SupportedCoins";
+import { DEFAULT_VALUE, getCoinName } from "../utils/SupportedCoins";
 
 export const usePools = () => {
   const whitelisted = whitelistedPools;
@@ -18,6 +18,38 @@ export const usePools = () => {
   const [pools, setPools] = useState([]);
   const [refresh, setRefresh] = useState(0);
   const [refreshDisabled, setRefreshDisabled] = useState(false);
+  const [reserves, setReserves] = useState({});
+  const [inputValue, setInputValue] = useState("");
+  const [outputValue, setOutputValue] = useState("");
+
+  const [isReversed, setIsReversed] = useState(false);
+  const [srcToken, setSrcToken] = useState({
+    name: DEFAULT_VALUE,
+    address: "",
+  });
+
+  const [destToken, setDestToken] = useState({
+    name: DEFAULT_VALUE,
+    address: "",
+  });
+
+  const srcTokenObj = {
+    id: "srcToken",
+    value: reserves.reverse ? reserves.reserves1 : reserves.reserves0,
+    setValue: setInputValue,
+    defaultValue: srcToken.name,
+    ignoreValue: destToken,
+    setToken: setSrcToken,
+  };
+
+  const destTokenObj = {
+    id: "destToken",
+    value: reserves.reverse ? reserves.reserves0 : reserves.reserves1,
+    setValue: setOutputValue,
+    defaultValue: destToken.name,
+    ignoreValue: srcToken,
+    setToken: setDestToken,
+  };
 
   useEffect(() => {
     const fetchPools = async () => {
@@ -67,6 +99,25 @@ export const usePools = () => {
     }
   };
 
-  // TODO restrict to whitelisted pools
-  return { pools, setRefresh, refresh, refreshAmounts, refreshDisabled };
+  return {
+    pools,
+    setRefresh,
+    refresh,
+    refreshAmounts,
+    refreshDisabled,
+    reserves,
+    setReserves,
+    srcToken,
+    destToken,
+    setSrcToken,
+    setDestToken,
+    srcTokenObj,
+    destTokenObj,
+    isReversed,
+    setIsReversed,
+    inputValue,
+    setInputValue,
+    outputValue,
+    setOutputValue,
+  };
 };
