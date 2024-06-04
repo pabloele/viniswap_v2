@@ -32,48 +32,38 @@ import { useAccount } from "wagmi";
 import { Toaster } from "react-hot-toast";
 import NavItems from "./NavItems";
 import SwapOptions from "./swapOptions";
+import useSwaps from "../hooks/useSwaps";
 
 const Swap = () => {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
-
-  const [srcToken, setSrcToken] = useState(WETH);
-  const [destToken, setDestToken] = useState(DEFAULT_VALUE);
-
-  const [inputValue, setInputValue] = useState();
-  const [outputValue, setOutputValue] = useState();
-
-  const inputValueRef = useRef();
-  const outputValueRef = useRef();
-
-  const [swapOptionsOpen, setSwapOptionsOpen] = useState(false);
-  const [slippage, setSlippage] = useState(10);
-
-  const isReversed = useRef(false);
-
-  const srcTokenObj = {
-    id: "srcToken",
-    value: inputValue,
-    setValue: setInputValue,
-    defaultValue: srcToken,
-    ignoreValue: destToken,
-    setToken: setSrcToken,
-  };
-
-  const destTokenObj = {
-    id: "destToken",
-    value: outputValue,
-    setValue: setOutputValue,
-    defaultValue: destToken,
-    ignoreValue: srcToken,
-    setToken: setDestToken,
-  };
-
-  const [srcTokenComp, setSrcTokenComp] = useState();
-  const [destTokenComp, setDestTokenComp] = useState();
-
-  const [swapBtnText, setSwapBtnText] = useState(ENTER_AMOUNT);
-  const [txPending, setTxPending] = useState(false);
+  const {
+    srcToken,
+    setSrcToken,
+    destToken,
+    setDestToken,
+    inputValue,
+    setInputValue,
+    outputValue,
+    setOutputValue,
+    swapOptionsOpen,
+    setSwapOptionsOpen,
+    slippage,
+    setSlippage,
+    srcTokenComp,
+    setSrcTokenComp,
+    destTokenComp,
+    setDestTokenComp,
+    swapBtnText,
+    setSwapBtnText,
+    txPending,
+    setTxPending,
+    inputValueRef,
+    outputValueRef,
+    isReversed,
+    srcTokenObj,
+    destTokenObj,
+  } = useSwaps();
 
   useEffect(() => {
     if (!address) setSwapBtnText(CONNECT_WALLET);
@@ -197,13 +187,6 @@ const Swap = () => {
     }
   };
 
-  const handleIncreaseAllowance = async () => {
-    setTxPending(true);
-    await increaseAllowance(srcToken, inputValue);
-    setTxPending(false);
-    setSwapBtnText(SWAP);
-  };
-
   function handleReverseExchange(e) {
     isReversed.current = true;
 
@@ -219,10 +202,7 @@ const Swap = () => {
       <div className="flex md:px-4">
         <NavItems />
       </div>
-      {/* <div className="flex items-center justify-between  px-1 my-4">
-        <p>Swap</p>
-        <CogIcon className="h-6" />
-      </div> */}
+
       <div className="flex items-center justify-between px-1 my-4">
         <p>Swap</p>
 
@@ -263,8 +243,6 @@ const Swap = () => {
       </button>
 
       {txPending && <TransactionStatus />}
-
-      {/* <Toaster /> */}
     </div>
   );
 };
