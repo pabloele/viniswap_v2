@@ -6,8 +6,10 @@ const HomeLayout = ({ children }) => {
       <div className="flex items-center justify-center mb-8">
         <Header />
       </div>
-      <div className="min-h-[10rem] "></div>
-      <div className="flex  justify-center  mt-16 px-5">{children}</div>
+
+      <div className="flex  justify-center  mt-16 px-2 md:px-16">
+        {children}
+      </div>
     </div>
   );
 };

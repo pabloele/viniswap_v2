@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "../styles/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import merge from "lodash.merge";
@@ -47,19 +48,19 @@ const { provider, chains } = configureChains(
     }),
   ]
 );
-console.log(provider);
-console.log(chains);
+// console.log(provider);
+// console.log(chains);
 const { connectors } = getDefaultWallets({
   appName: "Uniswap",
   chains,
 });
-console.log(connectors);
+// console.log(connectors);
 const wagmiClient = createClient({
   autoConnect: false,
   connectors,
   provider,
 });
-console.log("Wagmi Client:", wagmiClient);
+// console.log("Wagmi Client:", wagmiClient);
 const myTheme = merge(midnightTheme(), {
   colors: {
     accentColor: "#1818b",
@@ -68,6 +69,14 @@ const myTheme = merge(midnightTheme(), {
 });
 
 function MyApp({ Component, pageProps }) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  if (!isClient) {
+    return null; //loader
+  }
   return (
     <WagmiConfig client={wagmiClient}>
       <RainbowKitProvider chains={chains} theme={myTheme}>

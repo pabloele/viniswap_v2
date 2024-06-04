@@ -1,14 +1,21 @@
 import { BigNumber, ethers } from "ethers";
-import { routerContract, mtb24Contract, wethContract } from "./contract";
+import {
+  routerContract,
+  mtb24Contract,
+  wethContract,
+  pairContract,
+} from "./contract";
 import { toEth, toWei } from "./ether-utils";
+import { getCoinName } from "./SupportedCoins";
+import { wethABI } from "./abi";
+
+//Viniswap
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
 const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_MTB24_ADDRESS;
 
-//Viniswap
-
-export const tokenBalance = async () => {
+export const tokenBalance = async (tokenAddress = TOKEN_ADDRESS) => {
   try {
-    const tokenContractObj = await mtb24Contract(TOKEN_ADDRESS);
+    const tokenContractObj = await mtb24Contract(tokenAddress);
     const routerObj = await routerContract();
     const walletAddress = await routerObj.signer.getAddress();
 
@@ -107,7 +114,6 @@ export const increaseTokenAllowance = async (amount) => {
   }
 };
 
-// increaseTokenAllowance(0);
 export const increaseWethAllowance = async (amount) => {
   console.log(amount);
   try {
@@ -123,16 +129,14 @@ export const increaseWethAllowance = async (amount) => {
       toWei(amount.toString()).toString()
     );
 
-    const receipt = await approvalTx.wait();
-    console.log("Approval transaction receipt:", receipt);
+    // const receipt = await approvalTx.wait();
+    console.log("Approval transaction receipt:", approvalTx);
 
-    return receipt;
+    return approvalTx;
   } catch (error) {
     console.log(error);
   }
 };
-
-// increaseWethAllowance(0.1);
 
 export const getTokenPrice = async () => {
   try {
@@ -148,7 +152,7 @@ export const getTokenPrice = async () => {
     if (!amounts) {
       amounts = [0, 0];
     }
-    // El precio será la cantidad de WETH necesaria para recibir 1 unidad del token de salida
+    // Precio = la cantidad de WETH necesaria para recibir 1 unidad del token de salida
     const priceInWeth = ethers.utils.formatEther(amounts[1]);
     console.log("Precio del token en WETH:", priceInWeth);
 
@@ -159,14 +163,11 @@ export const getTokenPrice = async () => {
   }
 };
 
-// getTokenPrice();
-
-// increaseTokenAllowance();
-
 export const swapTokensToWeth = async (tokenAmount) => {
   const allowanceStatus = await tokenAllowance();
-  console.log("Status de aprobación: ", allowanceStatus);
+  console.log("Allowance status: ", allowanceStatus);
   const routerObj = await routerContract();
+  console.log("router address:", routerObj.address);
   if (!routerObj) {
     console.error("No se pudo obtener el contrato del router");
     return;
@@ -179,7 +180,7 @@ export const swapTokensToWeth = async (tokenAmount) => {
 
   try {
     const tx = await routerObj.connect(signer).swapExactTokensForTokens(
-      toWei(tokenAmount.toString()), // Cantidad exacta de tokens de entrada (1 token)
+      toWei(tokenAmount.toString()), // Cantidad exacta de tokens de entrada
 
       0, // Cantidad mínima de tokens de salida
       [
@@ -189,9 +190,6 @@ export const swapTokensToWeth = async (tokenAmount) => {
       ],
       signer.getAddress(), // Dirección del destinatario de los tokens de salida
       Math.floor(Date.now() / 1000) + 60 * 10 // Plazo de validez de la transacción
-      // {
-      //   gasLimit: 1000000,
-      // }
     );
     const result = await tx.wait();
     console.log(result);
@@ -203,14 +201,11 @@ export const swapTokensToWeth = async (tokenAmount) => {
   }
 };
 
-// swapTokensToWeth();
-
 export const swapWethToTokens = async (tokenAmount) => {
-  console.log(tokenAmount);
   const exactTokenAmount = Math.floor(tokenAmount);
   console.log(exactTokenAmount);
   const allowanceStatus = await wethAllowance();
-  console.log("Status de aprobación: ", allowanceStatus);
+  console.log("Allowance status: ", allowanceStatus);
   const routerObj = await routerContract();
   if (!routerObj) {
     console.error("No se pudo obtener el contrato del router");
@@ -247,4 +242,184 @@ export const swapWethToTokens = async (tokenAmount) => {
   }
 };
 
-// swapWethToTokens();
+export const lpTokenBalance = async (pairAddress) => {
+  try {
+    const pairContractObj = await pairContract({ pairAddress });
+    const routerObj = await routerContract();
+    const walletAddress = await routerObj.signer.getAddress();
+
+    const balance = await pairContractObj.balanceOf(walletAddress);
+    const formatedBalance = toEth(balance).toString();
+
+    console.log(formatedBalance);
+    return formatedBalance;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const addLiquidity = async (
+  tokenAAddress,
+  tokenBAddress,
+  amountAdesired,
+  amountBdesired,
+  amountAMin,
+  amountBMin
+) => {
+  const allowanceAStatus = await allowanceStatus(tokenAAddress);
+  const allowanceBStatus = await allowanceStatus(tokenBAddress);
+
+  const routerObj = await routerContract();
+  const signer = await routerObj.provider.getSigner();
+  if (!routerObj) {
+    console.error("No se pudo obtener el contrato del router");
+    return;
+  }
+
+  try {
+    const tx = await routerObj
+      .connect(signer)
+      .addLiquidity(
+        tokenAAddress,
+        tokenBAddress,
+        toWei(amountAdesired.toString()),
+        toWei(amountBdesired.toString()),
+        "0",
+        "0",
+        signer.getAddress(),
+        Math.floor(Date.now() / 1000) + 60 * 10
+      );
+
+    const receipt = await tx.wait();
+    console.log(receipt);
+    const afterSwapTokenBalance = await tokenBalance();
+    const afterSwapWethBalance = await wethBalance();
+    console.log(afterSwapTokenBalance, afterSwapWethBalance);
+    return receipt;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const allowanceStatus = async (tokenAddress) => {
+  let allowance = 0;
+  const name = getCoinName(tokenAddress);
+  if (name === "ETH") allowance = await wethAllowance();
+  else allowance = await tokenAllowance();
+  console.log(allowance);
+  return allowance;
+};
+
+export const removeLiquidity = async (
+  tokenAAddress,
+  tokenBAddress,
+  lpAmount
+) => {
+  const routerObj = await routerContract();
+
+  const signer = await routerObj.provider.getSigner();
+  if (!routerObj) {
+    console.error("No se pudo obtener el contrato del router");
+    return;
+  }
+
+  const formattedAmount = toWei(lpAmount);
+  console.log(formattedAmount);
+  try {
+    const tx = await routerObj
+      .connect(signer)
+      .removeLiquidity(
+        tokenAAddress,
+        tokenBAddress,
+        formattedAmount,
+        "0",
+        "0",
+        signer.getAddress(),
+        Math.floor(Date.now() / 1000) + 60 * 10
+      );
+
+    const receipt = await tx.wait();
+    console.log(receipt);
+
+    return receipt;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const lpTokenAllowance = async ({ liquidityAmount, address }) => {
+  console.log(liquidityAmount, address);
+  try {
+    const pairContractObj = await pairContract({ pairAddress: address });
+
+    const routerObj = await routerContract();
+    const routerAddress = routerObj.address;
+    console.log(routerAddress);
+    const walletAddress = await routerObj.signer.getAddress();
+    const formattedAmount = toWei(liquidityAmount);
+    console.log(formattedAmount);
+    const receipt = await pairContractObj.approve(
+      routerAddress,
+      formattedAmount
+    );
+    console.log(receipt);
+    return receipt;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const wrapEth = async (amount) => {
+  try {
+    const routerObj = await routerContract();
+    const signer = routerObj.provider.getSigner();
+    const wethContractObj = new ethers.Contract(WETH_ADDRESS, wethABI, signer);
+
+    const tx = await wethContractObj.deposit({
+      value: toWei(amount.toString()),
+    });
+
+    const receipt = await tx.wait();
+    console.log("Wrap ETH transaction receipt:", receipt);
+    return receipt;
+  } catch (error) {
+    console.error("Error wrapping ETH:", error);
+    throw error;
+  }
+};
+
+export const unwrapEth = async (amount) => {
+  console.log(amount);
+  try {
+    const signer = new ethers.providers.Web3Provider(
+      window.ethereum
+    ).getSigner();
+    const wethContractObj = new ethers.Contract(WETH_ADDRESS, wethABI, signer);
+
+    const tx = await wethContractObj.withdraw(toWei(amount.toString()));
+    const receipt = await tx.wait();
+    console.log("Unwrap ETH transaction receipt:", receipt);
+    return receipt;
+  } catch (error) {
+    console.error("Error unwrapping ETH:", error);
+    throw error;
+  }
+};
+
+export const increaseAllowance = async (amount, token) => {
+  try {
+    if (token.name === "ETH") {
+      const depositReceipt = await wrapEth(amount);
+      console.log("deposit receipt", depositReceipt);
+      const receipt = await increaseWethAllowance(amount * 1.1);
+      console.log(receipt);
+      return receipt;
+    } else {
+      const receipt = await increaseTokenAllowance(amount);
+      console.log(receipt);
+      return receipt;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};

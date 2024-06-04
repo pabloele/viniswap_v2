@@ -203,7 +203,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/Uniswap.sol": "Uniswap"
+			"contracts/contracts/Uniswap.sol": "Uniswap"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -257,12 +257,12 @@
 				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
 			]
 		},
-		"contracts/Uniswap.sol": {
-			"keccak256": "0xfb2976299cc156868a183475f1833589529bcefdc56a931cd303e2414388d5da",
+		"contracts/contracts/Uniswap.sol": {
+			"keccak256": "0xc4f3693b94aab8389ebe1b996e528617ca24d6090b8fb2fbb43b6a25695d2bf5",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6a0e3a45734e10d4512af4a2bf0bc96f156435fbd4e84e5e09e2ec53bff28a77",
-				"dweb:/ipfs/QmcZjQxxVfNptpZhN7sYNbhRMymsdPgQGGbKfPSc3Y6SVW"
+				"bzz-raw://b1791e7455671e22f44e4f6669d47c499dc0efa0ed778970450bd8ac484dfe74",
+				"dweb:/ipfs/QmNueSQUxFYBrPUWQsYkaHYUdsSqekQ38z27gdJo1Zxqee"
 			]
 		}
 	},
