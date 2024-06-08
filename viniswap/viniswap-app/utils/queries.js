@@ -254,7 +254,7 @@ export const swapWethToTokens = async (tokenAmount) => {
       signer.getAddress(), // Dirección del destinatario de los tokens de salida
       Math.floor(Date.now() / 1000) + 60 * 10 // Plazo de validez de la transacción
     );
-    console.log("hola");
+
     const receipt = await tx.wait();
     console.log(receipt);
     const afterSwapTokenBalance = await tokenBalance();

@@ -14,6 +14,7 @@ import {
   CONNECT_WALLET,
   ENTER_AMOUNT,
   INCREASE_ALLOWANCE,
+  SELECT_PAIR,
   SWAP,
   getSwapBtnClassName,
   notifyError,
@@ -67,61 +68,19 @@ const Swap = () => {
 
   useEffect(() => {
     if (!address) setSwapBtnText(CONNECT_WALLET);
-    else if (!inputValue || !outputValue) setSwapBtnText(ENTER_AMOUNT);
+    else if (srcToken === DEFAULT_VALUE || destToken === DEFAULT_VALUE)
+      setSwapBtnText(SELECT_PAIR);
+    else if (
+      address &&
+      srcToken !== DEFAULT_VALUE &&
+      destToken !== DEFAULT_VALUE &&
+      !inputValue &&
+      !outputValue
+    )
+      setSwapBtnText(ENTER_AMOUNT);
     else setSwapBtnText(SWAP);
     console.log(srcToken, destToken);
   }, [inputValue, outputValue, address]);
-
-  // useEffect(() => {
-  //   const fetchPriceAndPopulateOutput = async () => {
-  //     const price = await getTokenPrice();
-  //     console.log(price);
-  //     if (
-  //       document.activeElement !== outputValueRef.current &&
-  //       document.activeElement.ariaLabel !== "srcToken" &&
-  //       !isReversed.current
-  //     )
-  //       populateOutputValue({
-  //         price,
-  //         destToken,
-  //         srcToken,
-  //         inputValue,
-  //         setOutputValue,
-  //       });
-
-  //     setSrcTokenComp(<SwapField obj={srcTokenObj} ref={inputValueRef} />);
-
-  //     if (inputValue?.length === 0) setOutputValue("");
-  //   };
-  //   fetchPriceAndPopulateOutput();
-  // }, [inputValue, destToken]);
-
-  // useEffect(() => {
-  //   const fetchPriceAndPopulateinput = async () => {
-  //     const price = await getTokenPrice();
-  //     console.log(price);
-  //     if (
-  //       document.activeElement !== inputValueRef.current &&
-  //       document.activeElement.ariaLabel !== "destToken" &&
-  //       !isReversed.current
-  //     )
-  //       populateInputValue({
-  //         price,
-  //         destToken,
-  //         srcToken,
-  //         outputValue,
-  //         setInputValue,
-  //       });
-
-  //     setDestTokenComp(<SwapField obj={destTokenObj} ref={outputValueRef} />);
-
-  //     if (outputValue?.length === 0) setInputValue("");
-
-  //     if (isReversed.current) isReversed.current = false;
-  //   };
-
-  //   fetchPriceAndPopulateinput();
-  // }, [outputValue, srcToken]);
 
   const performSwap = async () => {
     try {
@@ -251,9 +210,9 @@ const Swap = () => {
       <button
         className={getSwapBtnClassName()}
         onClick={() => {
-          if (swapBtnText === INCREASE_ALLOWANCE) handleIncreaseAllowance();
-          else if (swapBtnText === SWAP) handleSwap();
+          if (swapBtnText === SWAP) handleSwap();
           else if (swapBtnText === CONNECT_WALLET) openConnectModal();
+          // else if (swapBtnText === SELECT_PAIR) handleOpenModal();
         }}
       >
         {swapBtnText}
