@@ -9,7 +9,6 @@ export const ADD_OR_REMOVE_LIQUIDITY = "Add or remove liquidity";
 
 export const CONNECT_WALLET = "Connect wallet";
 export const SWAP = "Swap";
-export const defaultSlippage = 10;
 
 export const notifyError = (msg) => toast.error(msg, { duration: 6000 });
 export const notifySuccess = () => toast.success("Transaction completed.");

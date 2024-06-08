@@ -22,7 +22,6 @@ import {
   populateOutputValue,
 } from "../utils/swap-utils";
 import { CogIcon, ArrowSmDownIcon } from "@heroicons/react/outline";
-import { HiOutlineSwitchVertical } from "react-icons/hi";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import SwapField from "./SwapField";
 import TransactionStatus from "./TransactionStatus";
@@ -51,15 +50,19 @@ const Swap = () => {
     setSwapOptionsOpen,
     slippage,
     setSlippage,
+    srcTokenComp,
+    setSrcTokenComp,
+    destTokenComp,
+    setDestTokenComp,
     swapBtnText,
     setSwapBtnText,
     txPending,
     setTxPending,
+    inputValueRef,
+    outputValueRef,
     isReversed,
     srcTokenObj,
     destTokenObj,
-    price,
-    setPrice,
   } = useSwaps();
 
   const [sourceValue, setSourceValue] = useState();
@@ -69,59 +72,58 @@ const Swap = () => {
     if (!address) setSwapBtnText(CONNECT_WALLET);
     else if (!inputValue || !outputValue) setSwapBtnText(ENTER_AMOUNT);
     else setSwapBtnText(SWAP);
-    console.log(srcToken, destToken);
   }, [inputValue, outputValue, address]);
 
-  // useEffect(() => {
-  //   const fetchPriceAndPopulateOutput = async () => {
-  //     const price = await getTokenPrice();
-  //     console.log(price);
-  //     if (
-  //       document.activeElement !== outputValueRef.current &&
-  //       document.activeElement.ariaLabel !== "srcToken" &&
-  //       !isReversed.current
-  //     )
-  //       populateOutputValue({
-  //         price,
-  //         destToken,
-  //         srcToken,
-  //         inputValue,
-  //         setOutputValue,
-  //       });
+  useEffect(() => {
+    const fetchPriceAndPopulateOutput = async () => {
+      const price = await getTokenPrice();
+      console.log(price);
+      if (
+        document.activeElement !== outputValueRef.current &&
+        document.activeElement.ariaLabel !== "srcToken" &&
+        !isReversed.current
+      )
+        populateOutputValue({
+          price,
+          destToken,
+          srcToken,
+          inputValue,
+          setOutputValue,
+        });
 
-  //     setSrcTokenComp(<SwapField obj={srcTokenObj} ref={inputValueRef} />);
+      setSrcTokenComp(<SwapField obj={srcTokenObj} ref={inputValueRef} />);
 
-  //     if (inputValue?.length === 0) setOutputValue("");
-  //   };
-  //   fetchPriceAndPopulateOutput();
-  // }, [inputValue, destToken]);
+      if (inputValue?.length === 0) setOutputValue("");
+    };
+    fetchPriceAndPopulateOutput();
+  }, [inputValue, destToken]);
 
-  // useEffect(() => {
-  //   const fetchPriceAndPopulateinput = async () => {
-  //     const price = await getTokenPrice();
-  //     console.log(price);
-  //     if (
-  //       document.activeElement !== inputValueRef.current &&
-  //       document.activeElement.ariaLabel !== "destToken" &&
-  //       !isReversed.current
-  //     )
-  //       populateInputValue({
-  //         price,
-  //         destToken,
-  //         srcToken,
-  //         outputValue,
-  //         setInputValue,
-  //       });
+  useEffect(() => {
+    const fetchPriceAndPopulateinput = async () => {
+      const price = await getTokenPrice();
+      console.log(price);
+      if (
+        document.activeElement !== inputValueRef.current &&
+        document.activeElement.ariaLabel !== "destToken" &&
+        !isReversed.current
+      )
+        populateInputValue({
+          price,
+          destToken,
+          srcToken,
+          outputValue,
+          setInputValue,
+        });
 
-  //     setDestTokenComp(<SwapField obj={destTokenObj} ref={outputValueRef} />);
+      setDestTokenComp(<SwapField obj={destTokenObj} ref={outputValueRef} />);
 
-  //     if (outputValue?.length === 0) setInputValue("");
+      if (outputValue?.length === 0) setInputValue("");
 
-  //     if (isReversed.current) isReversed.current = false;
-  //   };
+      if (isReversed.current) isReversed.current = false;
+    };
 
-  //   fetchPriceAndPopulateinput();
-  // }, [outputValue, srcToken]);
+    fetchPriceAndPopulateinput();
+  }, [outputValue, srcToken]);
 
   const performSwap = async () => {
     try {
@@ -155,7 +157,7 @@ const Swap = () => {
         console.log("wrapping " && inputValue && " eth");
         setTxPending(true);
 
-        const wrapReceipt = await wrapEth(inputValue * (1 + slippage / 100));
+        const wrapReceipt = await wrapEth(inputValue);
         console.log("eth wrapped succesfully", wrapReceipt);
 
         const allowance = await wethAllowance();
@@ -220,32 +222,16 @@ const Swap = () => {
         )}
       </div>
       <div className="flex bg-[#212429] p-4 py-6 rounded-xl mb-2 border-[2px] border-transparent hover:border-zinc-600">
-        <SwapField
-          fieldProps={{
-            ...srcTokenObj,
-            setCounterPart: setOutputValue,
-            price,
-            srcToken,
-            destToken,
-          }}
-        />
+        {srcTokenComp}
 
         <ArrowSmDownIcon
-          className="fixed left-1/2 -translate-x-1/2 -translate-y-[-120%]  justify-center  h-10 p-1 bg-[#212429] border-4 border-zinc-900 text-zinc-300 rounded-xl cursor-pointer hover:scale-110"
+          className="fixed left-1/2 -translate-x-1/2 -translate-y-[-100%]  justify-center  h-10 p-1 bg-[#212429] border-4 border-zinc-900 text-zinc-300 rounded-xl cursor-pointer hover:scale-110"
           onClick={handleReverseExchange}
         />
       </div>
 
       <div className="bg-[#212429] p-4 py-6 rounded-xl mt-2 border-[2px] border-transparent hover:border-zinc-600">
-        <SwapField
-          fieldProps={{
-            ...destTokenObj,
-            setCounterPart: setInputValue,
-            price,
-            srcToken,
-            destToken,
-          }}
-        />
+        {destTokenComp}
       </div>
 
       <button

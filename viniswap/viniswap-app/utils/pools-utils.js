@@ -6,8 +6,8 @@ export const pairIsWhitelisted = (address0, address1) => {
 
   const isWhitelisted = whitelistedPools.find(
     (pool) =>
-      (pool[0] === address0 && pool[1] === address1) ||
-      (pool[0] === address1 && pool[1] === address0)
+      (pool.pair[0] === address0 && pool.pair[1] === address1) ||
+      (pool.pair[0] === address1 && pool.pair[1] === address0)
   );
 
   return !!isWhitelisted;

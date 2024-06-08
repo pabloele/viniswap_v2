@@ -8,8 +8,8 @@ import {
 import { toEth, toWei } from "./ether-utils";
 import { getCoinName } from "./SupportedCoins";
 import { wethABI } from "./abi";
+import { getPairAddress } from "./whitelistedPools";
 
-//Viniswap
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
 const TOKEN_ADDRESS = process.env.NEXT_PUBLIC_MTB24_ADDRESS;
 
@@ -140,19 +140,17 @@ export const increaseWethAllowance = async (amount) => {
 
 export const getTokenPrice = async () => {
   try {
-    const routerObj = await routerContract(); // Obtener instancia del contrato del router
-    const amountOut = toWei("1"); // Definir la cantidad de salida deseada (1 unidad del token)
+    const routerObj = await routerContract();
+    const amountOut = toWei("1");
 
-    // Definir la ruta de intercambio (de TOKEN_ADDRESS a WETH_ADDRESS)
     const path = [TOKEN_ADDRESS, WETH_ADDRESS];
 
-    // Obtener las cantidades de entrada necesarias
     let amounts = await routerObj?.getAmountsOut(amountOut, path);
 
     if (!amounts) {
       amounts = [0, 0];
     }
-    // Precio = la cantidad de WETH necesaria para recibir 1 unidad del token de salida
+
     const priceInWeth = ethers.utils.formatEther(amounts[1]);
     console.log("Precio del token en WETH:", priceInWeth);
 
@@ -160,6 +158,32 @@ export const getTokenPrice = async () => {
   } catch (error) {
     console.error("Error al obtener el precio del token:", error);
     throw error;
+  }
+};
+export const getPrice = async (address0, address1) => {
+  const pairAddress = getPairAddress([address0, address1]);
+  console.log(pairAddress);
+  console.log(address0, address1);
+
+  try {
+    const pairContractObj = await pairContract(pairAddress);
+    const token0 = await pairContractObj.token0();
+    const token1 = await pairContractObj.token1();
+    const path = [token0, token1];
+    const poolReserves = await pairContractObj.getReserves();
+
+    const token0Reserves = toEth(poolReserves[0]);
+    const token1Reserves = toEth(poolReserves[1]);
+    const priceToken0InToken1 = poolReserves[0] / poolReserves[1]; //amount tokens of token0 needed to get 1 token of token1
+    const priceToken1InToken0 = poolReserves[1] / poolReserves[0]; //amount tokens of token1 needed to get 1 token of token0
+
+    console.log(token0Reserves, token1Reserves);
+    console.log(priceToken1InToken0, priceToken0InToken1);
+
+    const priceObj = { priceToken0InToken1, priceToken1InToken0, path };
+    return priceObj || {};
+  } catch (error) {
+    console.error("Error fetching price:", error);
   }
 };
 
@@ -244,7 +268,7 @@ export const swapWethToTokens = async (tokenAmount) => {
 
 export const lpTokenBalance = async (pairAddress) => {
   try {
-    const pairContractObj = await pairContract({ pairAddress });
+    const pairContractObj = await pairContract(pairAddress);
     const routerObj = await routerContract();
     const walletAddress = await routerObj.signer.getAddress();
 

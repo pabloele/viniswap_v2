@@ -1,6 +1,7 @@
-import React, { useRef, useState } from "react";
-import { DEFAULT_VALUE, WETH } from "../utils/SupportedCoins";
-import { ENTER_AMOUNT } from "../utils/swap-utils";
+import React, { useEffect, useRef, useState } from "react";
+import { DEFAULT_VALUE, WETH, getCoinAddress } from "../utils/SupportedCoins";
+import { ENTER_AMOUNT, defaultSlippage } from "../utils/swap-utils";
+import { getPrice, getTokenPrice } from "../utils/queries";
 
 const useSwaps = () => {
   const [srcToken, setSrcToken] = useState(WETH);
@@ -8,16 +9,15 @@ const useSwaps = () => {
   const [inputValue, setInputValue] = useState();
   const [outputValue, setOutputValue] = useState();
   const [swapOptionsOpen, setSwapOptionsOpen] = useState(false);
-  const [slippage, setSlippage] = useState(10);
-  const [srcTokenComp, setSrcTokenComp] = useState();
-  const [destTokenComp, setDestTokenComp] = useState();
+  const [slippage, setSlippage] = useState(defaultSlippage);
+
   const [swapBtnText, setSwapBtnText] = useState(ENTER_AMOUNT);
   const [txPending, setTxPending] = useState(false);
+  const [price, setPrice] = useState({});
+  const inValue = useState();
+  const outValue = useState();
 
-  const inputValueRef = useRef();
-  const outputValueRef = useRef();
-
-  const isReversed = useRef(false);
+  const isReversed = useState(false);
 
   const srcTokenObj = {
     id: "srcToken",
@@ -37,6 +37,20 @@ const useSwaps = () => {
     setToken: setDestToken,
   };
 
+  useEffect(() => {
+    const fetchPrice = async (inToken, outToken) => {
+      console.log(inToken, outToken);
+      const address0 = getCoinAddress(inToken);
+      const address1 = getCoinAddress(outToken);
+      console.log(address0, address1);
+      const relativePrices = await getPrice(address0, address1);
+      console.log(relativePrices);
+      setPrice(relativePrices);
+    };
+
+    if (srcToken && destToken) fetchPrice(srcToken, destToken);
+  }, [srcToken, destToken]);
+
   return {
     srcToken,
     setSrcToken,
@@ -50,19 +64,18 @@ const useSwaps = () => {
     setSwapOptionsOpen,
     slippage,
     setSlippage,
-    srcTokenComp,
-    setSrcTokenComp,
-    destTokenComp,
-    setDestTokenComp,
+
     swapBtnText,
     setSwapBtnText,
     txPending,
     setTxPending,
-    inputValueRef,
-    outputValueRef,
+    inValue,
+    outValue,
     isReversed,
     srcTokenObj,
     destTokenObj,
+    price,
+    setPrice,
   };
 };
 
