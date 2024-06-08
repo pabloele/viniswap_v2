@@ -210,11 +210,10 @@ const Swap = () => {
       </div>
 
       <button
-        className={getSwapBtnClassName()}
+        className={getSwapBtnClassName(swapBtnText)}
         onClick={() => {
           if (swapBtnText === SWAP) handleSwap();
           else if (swapBtnText === CONNECT_WALLET) openConnectModal();
-          // else if (swapBtnText === SELECT_PAIR) handleOpenModal();
         }}
       >
         {swapBtnText}
