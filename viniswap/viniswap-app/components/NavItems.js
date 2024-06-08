@@ -53,7 +53,7 @@ const NavItems = () => {
 
   function getNavIconClassName(name) {
     let className =
-      "p-1 px-1 cursor-pointer border-[4px] border-transparent flex items-center";
+      "p-1 px-2 cursor-pointer border-[4px] border-transparent flex items-center";
     className +=
       name === selectedNavItem
         ? " bg-zinc-800 border-zinc-900 rounded-full"

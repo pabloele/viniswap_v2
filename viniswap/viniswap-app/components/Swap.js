@@ -23,7 +23,7 @@ import {
   populateOutputValue,
 } from "../utils/swap-utils";
 import { CogIcon, ArrowSmDownIcon } from "@heroicons/react/outline";
-import { HiOutlineSwitchVertical } from "react-icons/hi";
+import { CgArrowsExchangeV } from "react-icons/cg";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import SwapField from "./SwapField";
 import TransactionStatus from "./TransactionStatus";
@@ -80,7 +80,7 @@ const Swap = () => {
       setSwapBtnText(ENTER_AMOUNT);
     else setSwapBtnText(SWAP);
     console.log(srcToken, destToken);
-  }, [inputValue, outputValue, address]);
+  }, [inputValue, outputValue, address, srcToken, destToken]);
 
   const performSwap = async () => {
     try {
@@ -92,8 +92,10 @@ const Swap = () => {
       } else if (srcToken !== WETH && destToken === WETH) {
         receipt = await swapTokensToWeth(inputValue);
         console.log("swap succesful", receipt);
-        withdrawReceipt = await withdrawWeth(inputValue);
-        console.log("weth withdrawn succesfully", withdrawReceipt);
+        // withdrawReceipt = await withdrawWeth(inputValue);
+        // console.log("weth withdrawn succesfully", withdrawReceipt);
+        setInputValue("");
+        setOutputValue("");
       }
 
       setTxPending(false);
@@ -189,8 +191,8 @@ const Swap = () => {
           }}
         />
 
-        <ArrowSmDownIcon
-          className="fixed left-1/2 -translate-x-1/2 -translate-y-[-120%]  justify-center  h-10 p-1 bg-[#212429] border-4 border-zinc-900 text-zinc-300 rounded-xl cursor-pointer hover:scale-110"
+        <CgArrowsExchangeV
+          className="fixed left-1/2 -translate-x-1/2 -translate-y-[-120%] text-[4rem] justify-center  h-10 p-1 bg-[#212429] border-4 border-zinc-900 text-zinc-300 rounded-xl cursor-pointer hover:scale-110"
           onClick={handleReverseExchange}
         />
       </div>

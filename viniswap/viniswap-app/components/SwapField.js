@@ -41,13 +41,18 @@ const SwapField = ({ fieldProps }) => {
 
   return (
     <div className="flex items-center rounded-xl">
-      <input
-        className="w-full outline-none h-8 px-2 appearance-none text-3xl bg-transparent"
-        type={"number"}
-        value={value}
-        placeholder={"0.0"}
-        onChange={handleChange}
-      />
+      <div className="relative">
+        <div className="absolute top-[0.5rem] right-0 text-xs mx-2 text-gray-500 pointer-events-none">
+          {id === "srcToken" ? "From:" : "To:"}
+        </div>
+        <input
+          className="w-full outline-none h-8 px-2 appearance-none text-3xl bg-transparent"
+          type={"number"}
+          value={value}
+          placeholder={"0.0"}
+          onChange={handleChange}
+        />
+      </div>
       <Selector
         id={id}
         setToken={setToken}
