@@ -1,6 +1,6 @@
 import React from "react";
 import Selector from "./Selector";
-import { getPrice } from "../utils/queries";
+import { getPrice, getTokenPrice } from "../utils/queries";
 import { getCoinAddress } from "../utils/SupportedCoins";
 
 const SwapField = ({ fieldProps }) => {
@@ -18,18 +18,28 @@ const SwapField = ({ fieldProps }) => {
   } = fieldProps;
 
   const populateCounterPart = async ({ inputValue }) => {
-    const { priceToken0InToken1, priceToken1InToken0, path } = price;
+    const {
+      priceToken0InToken1,
+      priceToken1InToken0,
+      path,
+      token0Reserves,
+      token1Reserves,
+    } = price;
 
     const CurrentTokenAddress =
       id === "srcToken" ? getCoinAddress(srcToken) : getCoinAddress(destToken);
 
     if (!CurrentTokenAddress) return;
     if (CurrentTokenAddress === path[0]) {
-      setCounterPart(priceToken1InToken0 * inputValue || "");
+      setCounterPart(
+        (token1Reserves * inputValue) / (token0Reserves + inputValue)
+      );
     }
 
     if (CurrentTokenAddress === path[1]) {
-      setCounterPart(priceToken0InToken1 * inputValue || "");
+      setCounterPart(
+        (token0Reserves * inputValue) / (token1Reserves + inputValue)
+      );
     }
   };
 

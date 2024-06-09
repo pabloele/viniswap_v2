@@ -138,10 +138,10 @@ export const increaseWethAllowance = async (amount) => {
   }
 };
 
-export const getTokenPrice = async () => {
+export const getTokenPrice = async (amount = 1) => {
   try {
     const routerObj = await routerContract();
-    const amountOut = toWei("1");
+    const amountOut = toWei(amount?.toString() || "1");
 
     const path = [TOKEN_ADDRESS, WETH_ADDRESS];
 
@@ -180,7 +180,13 @@ export const getPrice = async (address0, address1) => {
     console.log(token0Reserves, token1Reserves);
     console.log(priceToken1InToken0, priceToken0InToken1);
 
-    const priceObj = { priceToken0InToken1, priceToken1InToken0, path };
+    const priceObj = {
+      priceToken0InToken1,
+      priceToken1InToken0,
+      path,
+      token0Reserves,
+      token1Reserves,
+    };
     return priceObj || {};
   } catch (error) {
     console.error("Error fetching price:", error);

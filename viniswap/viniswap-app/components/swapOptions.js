@@ -14,7 +14,7 @@ const SwapOptions = ({ setSlippage, setSwapOptionsOpen }) => {
   //   };
 
   return (
-    <div className="origin-top-right absolute right-0 mt-2 w-20 rounded-md shadow-lg bg-[#212429] ring-1 ring-black ring-opacity-5">
+    <div className="origin-top-right absolute right-0 mt-2 w-20 rounded-md shadow-lg bg-[#212429] ring-1 ring-black ring-opacity-5 z-[1000]">
       <div className="flex justify-center p-2">
         <p className="text-sm text-gray-200 ">Slippage</p>
       </div>
@@ -30,6 +30,18 @@ const SwapOptions = ({ setSlippage, setSwapOptionsOpen }) => {
           onClick={() => handleSelect(10)}
         >
           10%
+        </button>
+        <button
+          className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-100 w-full text-center"
+          onClick={() => handleSelect(20)}
+        >
+          20%
+        </button>
+        <button
+          className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-100 w-full text-center"
+          onClick={() => handleSelect(50)}
+        >
+          50%
         </button>
         {/* <div className="px-4 py-2">
           <input
