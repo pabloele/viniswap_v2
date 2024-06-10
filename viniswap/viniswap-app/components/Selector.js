@@ -35,6 +35,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
         css={{
           backgroundColor:
             selectedItem === DEFAULT_VALUE ? "#840c4a" : "#2c2f36",
+          minWidth: "8rem",
         }}
       >
         {selectedItem}

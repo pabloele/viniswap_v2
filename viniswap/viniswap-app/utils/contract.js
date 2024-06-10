@@ -78,7 +78,7 @@ export const factoryContract = async () => {
   }
 };
 
-export const pairContract = async ({ pairAddress }) => {
+export const pairContract = async (pairAddress) => {
   if (typeof window !== "undefined" && window.ethereum) {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);

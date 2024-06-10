@@ -1,7 +1,7 @@
 import Selector from "./PoolSelector";
 
 const PoolField = ({ obj }) => {
-  const { id, value = "", setValue, defaultValue, setToken, ignoreValue } = obj;
+  const { id, value, setValue, defaultValue, setToken, ignoreValue } = obj;
 
   return (
     <div className="flex items-center rounded-xl">
@@ -10,7 +10,6 @@ const PoolField = ({ obj }) => {
         type={"number"}
         value={value}
         placeholder={"0.0"}
-        onChange={(e) => setValue(e.target.value)}
       />
       <Selector
         id={id}

@@ -25,7 +25,10 @@ const NavItems = () => {
   }, [router.pathname]);
 
   return (
-    <div className="bg-transparent h-fit flex items-center justify-around rounded-full w-full">
+    <div
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      className="bg-transparent h-fit flex items-center justify-around rounded-full w-full overflow-auto "
+    >
       <p className={getNavIconClassName(SWAP)} onClick={handleNavigate(SWAP)}>
         {SWAP}
       </p>
@@ -50,7 +53,7 @@ const NavItems = () => {
 
   function getNavIconClassName(name) {
     let className =
-      "p-1 px-4 cursor-pointer border-[4px] border-transparent flex items-center";
+      "p-1 px-2 cursor-pointer border-[4px] border-transparent flex items-center";
     className +=
       name === selectedNavItem
         ? " bg-zinc-800 border-zinc-900 rounded-full"

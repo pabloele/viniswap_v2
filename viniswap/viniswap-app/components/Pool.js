@@ -119,6 +119,7 @@ const Pool = () => {
       });
 
       await allowance.wait();
+
       console.log("allowance granted to remove", lpAmount, allowance);
       const receipt = await removeLiquidity(token0, token1, lpAmount);
 
@@ -126,9 +127,9 @@ const Pool = () => {
 
       const afterRemoveWethBalance = await wethBalance();
       console.log(afterRemoveWethBalance);
+      console.log("Withdrawing Eth...");
 
-      const wethWitdrawAmount = afterRemoveWethBalance - initialWethBalance;
-      const witdrawReceipt = await unwrapEth(wethWitdrawAmount);
+      const witdrawReceipt = await unwrapEth();
       console.log("successfully unwrapped eth", witdrawReceipt);
     } catch (error) {
       console.log(error);
@@ -150,6 +151,7 @@ const Pool = () => {
       console.log(
         `Pair (${srcToken.address}, ${destToken.address}) is whitelisted`
       );
+
       setSwapBtnText(ADD_OR_REMOVE_LIQUIDITY);
     } else {
       console.log(
@@ -161,7 +163,7 @@ const Pool = () => {
       setReserves({});
       return;
     }
-
+    console.log(pools);
     const pool = pools.find(
       (pool) =>
         (pool.token0 === srcToken.address &&
@@ -171,6 +173,7 @@ const Pool = () => {
 
     const reverse = pool?.token0 !== srcToken?.address;
     const poolData = { ...pool, reverse: reverse };
+    console.log(poolData);
     setReserves(poolData);
 
     return poolData;
@@ -186,7 +189,7 @@ const Pool = () => {
       const srcTokenAddress = getCoinAddress(srcToken);
       const destTokenAddress = getCoinAddress(destToken);
       const reserves = getPoolReserves({ srcToken, destToken });
-
+      console.log("reserves", reserves);
       if (inputValue.length === 0) setOutputValue("");
     };
 

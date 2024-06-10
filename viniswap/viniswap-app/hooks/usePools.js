@@ -61,7 +61,7 @@ export const usePools = () => {
 
         for (let i = 0; i < pairsCount; i++) {
           const pairAddress = await factory.allPairs(i);
-          const pairObj = await pairContract({ pairAddress });
+          const pairObj = await pairContract(pairAddress);
           const reserves = await pairObj.getReserves();
           const tokenAddress0 = await pairObj.token0();
           const tokenAddress1 = await pairObj.token1();
