@@ -72,6 +72,7 @@ const Pool = () => {
   const [signerBalances, setSignerBalances] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [transactionMessage, setTransactionMessage] = useState("");
+
   const handleRefresh = () => {
     refreshAmounts();
   };
@@ -83,14 +84,7 @@ const Pool = () => {
     try {
       const { token0, token1, reverse } = reserves;
       setTransactionMessage(`Step 1/4: Deposit ETH...`);
-      console.log(
-        tokenAAmount,
-        tokenBAmount,
-        srcToken,
-        destToken,
-        srcTokenObj,
-        destTokenObj
-      );
+
       const wrapReceipt = await wrapEth(
         srcTokenObj.defaultValue === WETH
           ? srcTokenObj.value
@@ -108,7 +102,8 @@ const Pool = () => {
       if (!allowanceA) {
         setIsLoading(false);
         setIsModalOpen(false);
-        notifyError("Transaction failed");
+        // notifyError("Transaction failed");
+
         return;
       }
       setTransactionMessage(
@@ -151,7 +146,7 @@ const Pool = () => {
       if (!allowance) {
         setIsLoading(false);
         setIsModalOpen(false);
-        notifyError("Transaction failed");
+        // notifyError("Transaction failed");
         return;
       }
 
@@ -167,7 +162,7 @@ const Pool = () => {
       if (!receipt) {
         setIsLoading(false);
         setIsModalOpen(false);
-        notifyError("Transaction failed");
+        // notifyError("Transaction failed");
         return;
       }
       console.log("liquidity successfully removed ", receipt);

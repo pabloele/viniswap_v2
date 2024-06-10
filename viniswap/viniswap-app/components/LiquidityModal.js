@@ -33,9 +33,13 @@ const LiquidityModal = ({
     let price;
 
     if (destToken.name === reserves.name1) {
-      price = reserves.reserves1 / reserves.reserves0;
+      price = ethers.utils
+        .parseUnits(reserves.reserves1)
+        .div(ethers.utils.parseUnits(reserves.reserves0));
     } else {
-      price = reserves.reserves0 / reserves.reserves1;
+      price = ethers.utils
+        .parseUnits(reserves.reserves0)
+        .div(ethers.utils.parseUnits(reserves.reserves1));
     }
 
     let newAmounts;
