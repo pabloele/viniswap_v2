@@ -401,6 +401,7 @@ export const lpTokenAllowance = async ({ liquidityAmount, address }) => {
 };
 
 export const wrapEth = async (amount) => {
+  if (!amount > 0) return;
   try {
     const routerObj = await routerContract();
     const signer = routerObj.provider.getSigner();
@@ -440,8 +441,8 @@ export const unwrapEth = async () => {
 export const increaseAllowance = async (amount, token) => {
   try {
     if (token.name === "ETH") {
-      const depositReceipt = await wrapEth(amount);
-      console.log("deposit receipt", depositReceipt);
+      // const depositReceipt = await wrapEth(amount);
+      // console.log("deposit receipt", depositReceipt);
       const receipt = await increaseWethAllowance(amount * 1.1);
       console.log(receipt);
       return receipt;

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
+import TransactionStatus from "./TransactionStatus";
+import { ethers } from "ethers";
+import { toEth } from "../utils/ether-utils";
 
 const LiquidityModal = ({
   isOpen,
@@ -10,15 +13,20 @@ const LiquidityModal = ({
   destToken,
   signerBalances,
   reserves,
+  isModalOpen,
+  setIsModalOpen,
+  transactionMessage,
+  setTransactionMessage,
+  isLoading,
+  setIsLoading,
 }) => {
   const [action, setAction] = useState("add");
   const [amounts, setAmounts] = useState({
-    tokenAAmount: "0",
-    tokenBAmount: "0",
+    tokenAAmount: "",
+    tokenBAmount: "",
   });
-  const [liquidityAmount, setLiquidityAmount] = useState("0");
+  const [liquidityAmount, setLiquidityAmount] = useState("");
   const [removePercentage, setRemovePercentage] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleChangeTokenAmount = (e) => {
     const { name, value } = e.target;
@@ -49,8 +57,19 @@ const LiquidityModal = ({
   const handleSlidePercentage = (e) => {
     const percentage = e.target.value;
     setRemovePercentage(percentage);
-    const newLiquidityAmount = (signerBalances.lpBalance * percentage) / 100;
-    setLiquidityAmount(newLiquidityAmount.toString());
+
+    const lpBalanceBN = ethers.utils.parseUnits(
+      signerBalances.lpBalance.toString(),
+      18
+    );
+
+    const newLiquidityAmountBN = lpBalanceBN.mul(percentage).div(100);
+
+    setLiquidityAmount(
+      percentage < 100
+        ? toEth(newLiquidityAmountBN.toString())
+        : signerBalances.lpBalance.toString()
+    );
   };
 
   const isExceedingBalance = (tokenAmount, balance) => {
@@ -58,7 +77,7 @@ const LiquidityModal = ({
   };
 
   const handleFocus = (e) => {
-    if (e.target.value === "0") {
+    if (e.target.value === "") {
       e.target.value = "";
     } else {
       e.target.setSelectionRange(e.target.value.length, e.target.value.length);
@@ -69,9 +88,8 @@ const LiquidityModal = ({
     if (e.target.value === "") {
       setAmounts((prevAmounts) => ({
         ...prevAmounts,
-        [e.target.name]: "0",
+        [e.target.name]: "",
       }));
-      e.target.value = "0";
     }
   };
 
@@ -83,7 +101,11 @@ const LiquidityModal = ({
       return;
     } else {
       setIsLoading(true);
-      await onAddLiquidity(amounts.tokenAAmount, amounts.tokenBAmount);
+      await onAddLiquidity(
+        amounts.tokenAAmount,
+        amounts.tokenBAmount,
+        setTransactionMessage
+      );
       setIsLoading(false);
     }
   };
@@ -91,6 +113,7 @@ const LiquidityModal = ({
   const handleRemoveLiquidity = async () => {
     setIsLoading(true);
     await onRemoveLiquidity(liquidityAmount);
+
     setIsLoading(false);
   };
 
@@ -100,6 +123,7 @@ const LiquidityModal = ({
       onRequestClose={onClose}
       className="modal-content bg-[#18181b] p-6 rounded-3xl max-w-md mx-auto"
       overlayClassName="modal-overlay fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
+      appElement={document.getElementById('#__next"')}
     >
       <div className="text-white">
         <p className="text-xl mb-4">Liquidity</p>
@@ -228,6 +252,12 @@ const LiquidityModal = ({
           </div>
         )}
       </div>
+      {isLoading && (
+        <TransactionStatus
+          transactionMessage={transactionMessage}
+          setTransactionMessage={setTransactionMessage}
+        />
+      )}
     </Modal>
   );
 };

@@ -94,8 +94,7 @@ const Swap = () => {
 
       if (srcToken === WETH && destToken !== WETH) {
         setTransactionMessage(
-          (prev) =>
-            `${prev}<br />Allowance granted.<br />Step 4/4: Performing swap...`
+          (prev) => `${prev}done.<br />Step 4/4: Performing swap...`
         );
         receipt = await swapWethToTokens(outputValue);
         if (!receipt) {
@@ -115,8 +114,7 @@ const Swap = () => {
         }
         console.log("swap succesful", receipt);
         setTransactionMessage(
-          (prev) =>
-            `${prev}<br />Swap completed. <br />Step 3/3: Withdrawing eth...`
+          (prev) => `${prev}done.<br />Step 3/3: Withdrawing eth...`
         );
         const withdrawReceipt = await unwrapEth();
         if (!withdrawReceipt) {
@@ -126,9 +124,7 @@ const Swap = () => {
           );
           return;
         }
-        setTransactionMessage(
-          (prev) => `${prev}<br />weth withdrawn succesfully`
-        );
+        setTransactionMessage((prev) => `${prev}done.`);
         console.log("weth withdrawn succesfully", withdrawReceipt);
         setTxPending(false);
         setInputValue("");
@@ -152,7 +148,7 @@ const Swap = () => {
     try {
       if (srcToken === WETH && destToken !== WETH) {
         console.log("wrapping " && inputValue && " eth");
-        setTransactionMessage(`Step 1/4: Wrapping ETH...`);
+        setTransactionMessage(`Step 1/4: Depositing ETH...`);
         setTxPending(true);
 
         const wrapReceipt = await wrapEth(inputValue * (1 + slippage / 100));
@@ -161,8 +157,7 @@ const Swap = () => {
         const allowance = await wethAllowance();
         console.log(allowance, inputValue);
         setTransactionMessage(
-          (prev) =>
-            `${prev}<br />Eth wrapped succesfully.<br />Step 2/4: Granting WETH allowance...`
+          (prev) => `${prev}done.<br />Step 2/4: Granting WETH allowance...`
         );
         const receipt = await increaseWethAllowance(
           (inputValue * (100 + slippage)) / 100
@@ -189,8 +184,7 @@ const Swap = () => {
         console.log(receipt);
 
         setTransactionMessage(
-          (prev) =>
-            `${prev}<br />Token allowance granted.<br />Step 2/3: Performing swap...`
+          (prev) => `${prev}done.<br />Step 2/3: Performing swap...`
         );
 
         performSwap();

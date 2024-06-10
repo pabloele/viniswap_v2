@@ -14,7 +14,9 @@ import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
 import { infuraProvider } from "wagmi/providers/infura";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { jsonRpcProvider } from "@wagmi/core/providers/jsonRpc";
+import Modal from "react-modal";
 
+Modal.setAppElement("#__next");
 const OPsepolia = {
   id: 11155420,
   name: "OP Sepolia",

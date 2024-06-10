@@ -3,19 +3,10 @@ import React, { useEffect, useState } from "react";
 
 import {
   addLiquidity,
-  getTokenPrice,
   increaseAllowance,
-  increaseTokenAllowance,
-  increaseWethAllowance,
   lpTokenAllowance,
-  lpTokenBalance,
   removeLiquidity,
-  swapTokensToWeth,
-  swapWethToTokens,
-  tokenAllowance,
-  tokenBalance,
   unwrapEth,
-  wethAllowance,
   wethBalance,
   wrapEth,
 } from "../utils/queries";
@@ -24,7 +15,6 @@ import {
   CONNECT_WALLET,
   ENTER_AMOUNT,
   SELECT_PAIR,
-  SWAP,
   getSwapBtnClassName,
   notifyError,
   notifySuccess,
@@ -50,6 +40,7 @@ import { FiRefreshCcw } from "react-icons/fi";
 import NavItems from "./NavItems";
 import { getBalances, pairIsWhitelisted } from "../utils/pools-utils";
 import PoolField from "./PoolField";
+import TransactionStatus from "./TransactionStatus";
 const Pool = () => {
   const whitelisted = whitelistedPools;
 
@@ -79,17 +70,55 @@ const Pool = () => {
   const { openConnectModal } = useConnectModal();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [signerBalances, setSignerBalances] = useState({});
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [transactionMessage, setTransactionMessage] = useState("");
   const handleRefresh = () => {
     refreshAmounts();
   };
-  const handleAddLiquidity = async (tokenAAmount, tokenBAmount) => {
+  const handleAddLiquidity = async (
+    tokenAAmount,
+    tokenBAmount,
+    setTransactionMessage
+  ) => {
     try {
       const { token0, token1, reverse } = reserves;
+      setTransactionMessage(`Step 1/4: Deposit ETH...`);
+      console.log(
+        tokenAAmount,
+        tokenBAmount,
+        srcToken,
+        destToken,
+        srcTokenObj,
+        destTokenObj
+      );
+      const wrapReceipt = await wrapEth(
+        srcTokenObj.defaultValue === WETH
+          ? srcTokenObj.value
+          : destTokenObj.defaultValue === WETH
+          ? destTokenObj.value
+          : 0
+      );
+      console.log("eth wrapped succesfully", wrapReceipt);
 
+      setTransactionMessage(
+        (prev) =>
+          `${prev} done.<br />Step 2/4: Granting ${srcTokenObj.defaultValue} allowance...`
+      );
       const allowanceA = await increaseAllowance(tokenAAmount, srcToken);
+      if (!allowanceA) {
+        setIsLoading(false);
+        setIsModalOpen(false);
+        notifyError("Transaction failed");
+        return;
+      }
+      setTransactionMessage(
+        (prev) =>
+          `${prev} done.<br />Step 3/4: Granting ${destTokenObj.defaultValue} allowance...`
+      );
       const allowanceB = await increaseAllowance(tokenBAmount, destToken);
-
+      setTransactionMessage(
+        (prev) => `${prev} done. <br />Step 4/4: Adding liquidity...`
+      );
       const receipt = await addLiquidity(
         token0,
         token1,
@@ -98,6 +127,7 @@ const Pool = () => {
         0,
         0
       );
+      setTransactionMessage((prev) => `${prev} done.`);
     } catch (error) {
       console.log(error);
     }
@@ -108,33 +138,63 @@ const Pool = () => {
 
   const handleRemoveLiquidity = async (lpAmount) => {
     console.log(reserves);
-    const initialWethBalance = await wethBalance();
-    console.log(initialWethBalance);
+
     try {
       const { address, token0, token1 } = reserves;
+      setTransactionMessage(`Step 1/3: Granting VINI token allowance...`);
 
       const allowance = await lpTokenAllowance({
         liquidityAmount: lpAmount,
         address,
       });
 
-      await allowance.wait();
+      if (!allowance) {
+        setIsLoading(false);
+        setIsModalOpen(false);
+        notifyError("Transaction failed");
+        return;
+      }
 
+      await allowance.wait();
       console.log("allowance granted to remove", lpAmount, allowance);
+
+      setTransactionMessage(
+        (prev) => `${prev} done.<br />Step 2/3: Removing liquidity...`
+      );
+
       const receipt = await removeLiquidity(token0, token1, lpAmount);
 
+      if (!receipt) {
+        setIsLoading(false);
+        setIsModalOpen(false);
+        notifyError("Transaction failed");
+        return;
+      }
       console.log("liquidity successfully removed ", receipt);
-
+      setTransactionMessage(
+        (prev) => `${prev} done.<br />Step 3/3: Withdrawing ETH...`
+      );
       const afterRemoveWethBalance = await wethBalance();
       console.log(afterRemoveWethBalance);
       console.log("Withdrawing Eth...");
 
       const witdrawReceipt = await unwrapEth();
+      if (!witdrawReceipt) {
+        setIsLoading(false);
+        setIsModalOpen(false);
+        notifyError(
+          "Liquidity removal succeded, but ETH not withdrawn. Please withdraw your ETH manually"
+        );
+        return;
+      }
+
       console.log("successfully unwrapped eth", witdrawReceipt);
+      // notifySuccess("Liquidity removed successfully!");
     } catch (error) {
       console.log(error);
     }
     setIsModalOpen(false);
+
     handleRefresh();
   };
 
@@ -267,6 +327,12 @@ const Pool = () => {
         destToken={destToken}
         signerBalances={signerBalances}
         reserves={reserves}
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        transactionMessage={transactionMessage}
+        setTransactionMessage={setTransactionMessage}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
       />
     </div>
   );

@@ -27,7 +27,7 @@ const Selector = ({ defaultValue, ignoreValue, setToken, id }) => {
       <Dropdown.Button
         css={{
           backgroundColor: "#2c2f36",
-          width: "8rem",
+          minWidth: "8rem",
           // selectedItem === DEFAULT_VALUE ? "#2172e5" : "#2c2f36",
         }}
       >
