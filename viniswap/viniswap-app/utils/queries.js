@@ -226,6 +226,7 @@ export const swapTokensToWeth = async (tokenAmount) => {
     const afterSwapTokenBalance = await tokenBalance();
     const afterSwapWethBalance = await wethBalance();
     console.log(afterSwapTokenBalance, afterSwapWethBalance);
+    return result;
   } catch (error) {
     console.log(error);
   }

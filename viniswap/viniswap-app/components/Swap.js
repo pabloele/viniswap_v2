@@ -66,7 +66,7 @@ const Swap = () => {
 
   const [sourceValue, setSourceValue] = useState();
   const [destValue, setDestValue] = useState();
-
+  const [transactionMessage, setTransactionMessage] = useState("");
   useEffect(() => {
     if (!address) setSwapBtnText(CONNECT_WALLET);
     else if (srcToken === DEFAULT_VALUE || destToken === DEFAULT_VALUE)
@@ -81,7 +81,7 @@ const Swap = () => {
       setSwapBtnText(ENTER_AMOUNT);
     else setSwapBtnText(SWAP);
     console.log(srcToken, destToken);
-  }, [inputValue, outputValue, address, srcToken, destToken]);
+  }, [inputValue, outputValue, address, srcToken, destToken, isReversed]);
 
   useEffect(() => {
     setInputValue("");
@@ -93,13 +93,44 @@ const Swap = () => {
       let receipt;
 
       if (srcToken === WETH && destToken !== WETH) {
+        setTransactionMessage(
+          (prev) =>
+            `${prev}<br />Allowance granted.<br />Step 4/4: Performing swap...`
+        );
         receipt = await swapWethToTokens(outputValue);
+        if (!receipt) {
+          setTxPending(false);
+          notifyError("Transaction failed");
+          return;
+        }
+        setTxPending(false);
+        notifySuccess("Swap completed succesfully!");
+        return;
       } else if (srcToken !== WETH && destToken === WETH) {
         receipt = await swapTokensToWeth(inputValue);
+        if (!receipt) {
+          setTxPending(false);
+          notifyError("Transaction failed");
+          return;
+        }
         console.log("swap succesful", receipt);
-        console.log("Withdrawing ETH...");
-        withdrawReceipt = await unwrapEth();
+        setTransactionMessage(
+          (prev) =>
+            `${prev}<br />Swap completed. <br />Step 3/3: Withdrawing eth...`
+        );
+        const withdrawReceipt = await unwrapEth();
+        if (!withdrawReceipt) {
+          setTxPending(false);
+          notifyError(
+            "Swap performed, but weth withdrawal failed. Please withdraw manually"
+          );
+          return;
+        }
+        setTransactionMessage(
+          (prev) => `${prev}<br />weth withdrawn succesfully`
+        );
         console.log("weth withdrawn succesfully", withdrawReceipt);
+        setTxPending(false);
         setInputValue("");
         setOutputValue("");
       }
@@ -111,15 +142,17 @@ const Swap = () => {
         notifySuccess();
       }
     } catch (error) {
-      setTxPending(false);
       console.log(error);
+      notifyError("Transaction failed");
     }
+    setTxPending(false);
   };
 
   const handleSwap = async () => {
     try {
       if (srcToken === WETH && destToken !== WETH) {
         console.log("wrapping " && inputValue && " eth");
+        setTransactionMessage(`Step 1/4: Wrapping ETH...`);
         setTxPending(true);
 
         const wrapReceipt = await wrapEth(inputValue * (1 + slippage / 100));
@@ -127,7 +160,10 @@ const Swap = () => {
 
         const allowance = await wethAllowance();
         console.log(allowance, inputValue);
-
+        setTransactionMessage(
+          (prev) =>
+            `${prev}<br />Eth wrapped succesfully.<br />Step 2/4: Granting WETH allowance...`
+        );
         const receipt = await increaseWethAllowance(
           (inputValue * (100 + slippage)) / 100
         );
@@ -140,17 +176,28 @@ const Swap = () => {
         performSwap();
       } else if (srcToken !== WETH && destToken === WETH) {
         setTxPending(true);
+        setTransactionMessage(`Step 1/3: Granting token allowance...`);
         const allowance = await tokenAllowance();
         console.log(allowance, inputValue);
 
         const receipt = await increaseTokenAllowance(inputValue);
+        if (!receipt) {
+          notifyError("Transaction failed");
+          setTxPending(false);
+          return;
+        }
         console.log(receipt);
 
-        setTxPending(false);
+        setTransactionMessage(
+          (prev) =>
+            `${prev}<br />Token allowance granted.<br />Step 2/3: Performing swap...`
+        );
 
         performSwap();
       }
     } catch (error) {
+      notifyError("Transaction failed");
+      setTxPending(false);
       console.log(error);
     }
   };
@@ -225,7 +272,12 @@ const Swap = () => {
         {swapBtnText}
       </button>
 
-      {txPending && <TransactionStatus />}
+      {txPending && (
+        <TransactionStatus
+          transactionMessage={transactionMessage}
+          setTransactionMessage={setTransactionMessage}
+        />
+      )}
     </div>
   );
 };
