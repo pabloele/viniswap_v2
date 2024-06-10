@@ -2,6 +2,8 @@ import React from "react";
 import Selector from "./Selector";
 import { getPrice, getTokenPrice } from "../utils/queries";
 import { getCoinAddress } from "../utils/SupportedCoins";
+import { ethers, BigNumber } from "ethers";
+import { toEth } from "../utils/ether-utils";
 
 const SwapField = ({ fieldProps }) => {
   const {
@@ -18,41 +20,63 @@ const SwapField = ({ fieldProps }) => {
   } = fieldProps;
 
   const populateCounterPart = async ({ inputValue }) => {
-    const {
-      priceToken0InToken1,
-      priceToken1InToken0,
-      path,
-      token0Reserves,
-      token1Reserves,
-    } = price;
-
+    const { path, token0Reserves, token1Reserves } = price;
+    if (inputValue === "") {
+      setCounterPart("");
+      return;
+    }
     const CurrentTokenAddress =
       id === "srcToken" ? getCoinAddress(srcToken) : getCoinAddress(destToken);
 
     if (!CurrentTokenAddress) return;
+
+    const inputAmountBN = ethers.utils.parseUnits(inputValue, 18);
+    const token0ReservesBN = ethers.utils.parseUnits(
+      token0Reserves.toString(),
+      18
+    );
+    const token1ReservesBN = ethers.utils.parseUnits(
+      token1Reserves.toString(),
+      18
+    );
+    console.log(
+      toEth(inputAmountBN),
+      toEth(token0ReservesBN),
+      toEth(token1ReservesBN)
+    );
+
     if (CurrentTokenAddress === path[0]) {
-      setCounterPart(
-        (token1Reserves * inputValue) / (token0Reserves + inputValue)
-      );
+      const outputAmount = token1ReservesBN
+        .mul(inputAmountBN)
+        .div(token0ReservesBN.add(inputAmountBN)); //Uniswap's formula
+
+      setCounterPart(toEth(outputAmount));
     }
 
     if (CurrentTokenAddress === path[1]) {
-      setCounterPart(
-        (token0Reserves * inputValue) / (token1Reserves + inputValue)
-      );
+      const outputAmount = token0ReservesBN
+        .mul(inputAmountBN)
+        .div(token1ReservesBN.add(inputAmountBN)); //Uniswap's formula
+      setCounterPart(toEth(outputAmount));
     }
   };
 
   const handleChange = (e) => {
     setValue(e.target.value);
 
-    populateCounterPart({ inputValue: e.target.value });
+    populateCounterPart({
+      inputValue: e.target.value,
+    });
   };
 
   return (
     <div className="flex items-center rounded-xl">
       <div className="relative">
-        <div className="absolute top-[0.5rem] right-0 text-xs mx-2 text-gray-500 pointer-events-none">
+        <div
+          className={`absolute top-[-1.5rem] text-xs mx-2 text-gray-500 pointer-events-none shadow-lg ${
+            id === "srcToken" ? " right-[-7.5rem]" : " right-[-6.5rem]"
+          }`}
+        >
           {id === "srcToken" ? "From:" : "To:"}
         </div>
         <input

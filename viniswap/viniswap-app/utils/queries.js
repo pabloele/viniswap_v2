@@ -380,7 +380,7 @@ export const removeLiquidity = async (
 export const lpTokenAllowance = async ({ liquidityAmount, address }) => {
   console.log(liquidityAmount, address);
   try {
-    const pairContractObj = await pairContract({ pairAddress: address });
+    const pairContractObj = await pairContract(address);
 
     const routerObj = await routerContract();
     const routerAddress = routerObj.address;
@@ -418,15 +418,15 @@ export const wrapEth = async (amount) => {
   }
 };
 
-export const unwrapEth = async (amount) => {
-  console.log(amount);
+export const unwrapEth = async () => {
   try {
     const signer = new ethers.providers.Web3Provider(
       window.ethereum
     ).getSigner();
     const wethContractObj = new ethers.Contract(WETH_ADDRESS, wethABI, signer);
-
-    const tx = await wethContractObj.withdraw(toWei(amount.toString()));
+    const balance = await wethContractObj.balanceOf(signer.getAddress());
+    console.log(toEth(balance));
+    const tx = await wethContractObj.withdraw(balance);
     const receipt = await tx.wait();
     console.log("Unwrap ETH transaction receipt:", receipt);
     return receipt;

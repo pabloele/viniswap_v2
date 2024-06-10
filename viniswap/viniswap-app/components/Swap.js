@@ -6,6 +6,7 @@ import {
   swapTokensToWeth,
   swapWethToTokens,
   tokenAllowance,
+  unwrapEth,
   wethAllowance,
   wrapEth,
 } from "../utils/queries";
@@ -82,6 +83,10 @@ const Swap = () => {
     console.log(srcToken, destToken);
   }, [inputValue, outputValue, address, srcToken, destToken]);
 
+  useEffect(() => {
+    setInputValue("");
+    setOutputValue("");
+  }, []);
   const performSwap = async () => {
     try {
       setTxPending(true);
@@ -92,8 +97,9 @@ const Swap = () => {
       } else if (srcToken !== WETH && destToken === WETH) {
         receipt = await swapTokensToWeth(inputValue);
         console.log("swap succesful", receipt);
-        // withdrawReceipt = await withdrawWeth(inputValue);
-        // console.log("weth withdrawn succesfully", withdrawReceipt);
+        console.log("Withdrawing ETH...");
+        withdrawReceipt = await unwrapEth();
+        console.log("weth withdrawn succesfully", withdrawReceipt);
         setInputValue("");
         setOutputValue("");
       }

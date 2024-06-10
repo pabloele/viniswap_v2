@@ -102,7 +102,7 @@ const LiquidityModal = ({
       overlayClassName="modal-overlay fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
     >
       <div className="text-white">
-        <h2 className="text-2xl mb-4">Liquidity</h2>
+        <p className="text-xl mb-4">Liquidity</p>
 
         <div className="flex mb-4 justify-center">
           <button
