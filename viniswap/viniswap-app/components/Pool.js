@@ -131,8 +131,13 @@ const Pool = () => {
     handleRefresh();
   };
 
-  const handleRemoveLiquidity = async (lpAmount) => {
+  const handleRemoveLiquidity = async (
+    amount,
+    signerLpBalance,
+    removePercentage
+  ) => {
     console.log(reserves);
+    const lpAmount = removePercentage === 100 ? signerLpBalance : amount;
 
     try {
       const { address, token0, token1 } = reserves;

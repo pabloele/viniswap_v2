@@ -114,9 +114,13 @@ const LiquidityModal = ({
     }
   };
 
-  const handleRemoveLiquidity = async () => {
+  const handleRemoveLiquidity = async (removePercentage) => {
     setIsLoading(true);
-    await onRemoveLiquidity(liquidityAmount);
+    await onRemoveLiquidity(
+      liquidityAmount,
+      signerBalances.lpBalance,
+      removePercentage
+    );
 
     setIsLoading(false);
   };
@@ -248,7 +252,7 @@ const LiquidityModal = ({
                   ? "w-full p-2 bg-[#1a0911ad] rounded-xl h-[3rem]  text-[#000000]"
                   : "w-full p-2 bg-[#44162e] rounded-xl h-[3rem] hover:bg-[#351223] text-gray-300"
               }
-              onClick={handleRemoveLiquidity}
+              onClick={() => handleRemoveLiquidity(removePercentage)}
               disabled={isLoading}
             >
               {isLoading ? "Processing..." : "Remove"}
