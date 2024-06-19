@@ -32,31 +32,35 @@ const OPsepolia = {
     },
   },
 };
-
+const sepolia = {
+  id: 11155111,
+  name: "Sepolia",
+  network: "sepolia",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    public: "https://sepolia.infura.io/v3/",
+  },
+  blockExplorers: {
+    default: {
+      name: "Sepolia etherscan",
+      url: "https://sepolia.etherscan.io",
+    },
+  },
+};
 const { provider, chains } = configureChains(
-  [OPsepolia],
+  [OPsepolia, sepolia],
   [
-    // infuraProvider({
-    //   apiKey: process.env.NEXT_PUBLIC_API_KEY,
-    // }),
-    alchemyProvider({
-      apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
-    }),
-
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY }),
     jsonRpcProvider({
-      rpc: (chain) => ({
-        http: `https://sepolia.optimism.io`,
-      }),
-    }),
+      rpc: (chain) => ({ http: chain.rpcUrls.default })
+    })
   ]
 );
-// console.log(provider);
-// console.log(chains);
+
 const { connectors } = getDefaultWallets({
   appName: "Uniswap",
   chains,
 });
-// console.log(connectors);
 const wagmiClient = createClient({
   autoConnect: false,
   connectors,

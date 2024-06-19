@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { factoryABI, mtb24ABI, pairABI, routerABI, wethABI } from "./abi";
+import { bridgeAbi, factoryABI, mtb24ABI, pairABI, routerABI, wethABI } from "./abi";
 
 export const mtb24Contract = async (address) => {
   if (typeof window !== "undefined") {
@@ -92,3 +92,28 @@ export const pairContract = async (pairAddress) => {
     throw new Error("Ethereum object not found or not running in a browser.");
   }
 };
+
+
+export const mtbContracts = async (address) => {
+  if (typeof window !== "undefined") {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const { ethereum } = window;
+    if (ethereum) {
+      const signer = provider.getSigner();
+      const contractReader = new ethers.Contract(address, mtb24ABI, signer);
+      return contractReader;
+    }
+  }
+};
+
+export const bridgeContract = async (address) => {
+  if (typeof window !== "undefined") {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const { ethereum } = window;
+    if (ethereum) {
+      const signer = provider.getSigner();
+      const contractReader = new ethers.Contract(address, bridgeAbi, signer);
+      return contractReader;
+    }
+  }
+}

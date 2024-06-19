@@ -31,7 +31,7 @@ import TransactionStatus from "./TransactionStatus";
 
 import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
 import { toEth, toWei } from "../utils/ether-utils";
-import { useAccount } from "wagmi";
+import { useAccount  } from "wagmi";
 import { Toaster } from "react-hot-toast";
 import NavItems from "./NavItems";
 import SwapOptions from "./swapOptions";
