@@ -85,6 +85,13 @@ const Pool = () => {
       const { token0, token1, reverse } = reserves;
       setTransactionMessage(`Step 1/4: Deposit ETH...`);
 
+      console.log(
+        srcTokenObj.defaultValue === WETH
+          ? srcTokenObj.value
+          : destTokenObj.value
+          ? destTokenObj.value
+          : 0
+      );
       const wrapReceipt = await wrapEth(
         srcTokenObj.defaultValue === WETH
           ? srcTokenObj.value
