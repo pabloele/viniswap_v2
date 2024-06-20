@@ -3,10 +3,11 @@ import toast, { Toaster } from "react-hot-toast";
 
 export const INCREASE_ALLOWANCE = "Increase allowance";
 export const ENTER_AMOUNT = "Enter an amount";
+export const INVALID_AMOUNT = "Invalid amount";
 export const PAIR_NOT_AVAILABLE = "Pair not available";
 export const SELECT_PAIR = "Select a valid pair";
 export const ADD_OR_REMOVE_LIQUIDITY = "Add or remove liquidity";
-
+export const CONFIRM = "Confirm";
 export const CONNECT_WALLET = "Connect wallet";
 export const SWAP = "Swap";
 export const defaultSlippage = 10;

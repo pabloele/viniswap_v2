@@ -7,7 +7,7 @@ import {
 } from "./contract";
 import { toEth, toWei } from "./ether-utils";
 import { getCoinName } from "./SupportedCoins";
-import { wethABI } from "./abi";
+import { bridgeAbi, mtb24ABI, wethABI } from "./abi";
 import { getPairAddress } from "./whitelistedPools";
 
 const WETH_ADDRESS = process.env.NEXT_PUBLIC_WETH_ADDRESS;
@@ -85,6 +85,33 @@ export const wethAllowance = async () => {
     console.log("Alloance:", formattedAllowance);
 
     return formattedAllowance;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+export const increaseBridgeAllowance = async (amount,tokenAddress, bridgeAddress) => {
+  try {
+
+    const signer = new ethers.providers.Web3Provider(
+      window.ethereum
+    ).getSigner();
+
+    const tokenContractObj = new ethers.Contract(tokenAddress, mtb24ABI, signer);
+
+    const bridgeContractObj = new ethers.Contract(bridgeAddress, bridgeAbi, signer);
+   
+
+    const approvalTx = await tokenContractObj.approve(
+      bridgeContractObj.address,
+      toWei(amount.toString()).toString()
+    );
+
+    const receipt = await approvalTx.wait();
+    console.log("Approval transaction receipt:", receipt);
+
+    return receipt;
   } catch (error) {
     console.log(error);
   }
@@ -455,3 +482,58 @@ export const increaseAllowance = async (amount, token) => {
     console.log(error);
   }
 };
+
+export const transferTokenToOP = async (amount, address) => {
+  const amountFormatted = ethers.utils.parseUnits(amount.toString(), 18);
+
+  try {
+    const signer = new ethers.providers.Web3Provider(
+      window.ethereum
+    ).getSigner();
+    const bridgeContractObj = new ethers.Contract(address, bridgeAbi, signer);
+
+
+    const tx = await bridgeContractObj.burn(address, amountFormatted);
+    const receipt = await tx.wait();
+    console.log("Tokens burned and transferred", receipt);
+
+    const nonce = await bridgeContractObj.nonce();
+
+    console.log("Nonce", nonce.toString());
+    return { receipt, nonce };
+  } catch (error) {
+    console.error("Token transfer error", error);
+    throw error;
+  }
+
+}
+
+
+export const mintOpToken = async (amount, address, nonce,account) => {
+
+  // const secretHash = process.env.NEXT_PUBLIC_SECRET_HASH;
+
+  // const hexvalue = ethers.utils.formatBytes32String(secretHash);
+
+
+  const amountFormatted = ethers.utils.parseUnits(amount.toString(), 18);
+
+
+  try {
+    const signer = new ethers.providers.Web3Provider(
+      window.ethereum
+    ).getSigner();
+    const bridgeContractObj = new ethers.Contract(address, bridgeAbi, signer);
+
+    const tx = await bridgeContractObj.mint(account, amountFormatted, nonce);
+    const receipt = await tx.wait();
+    console.log("Tokens minted", receipt);
+    return receipt;
+  } catch (error) {
+    console.error("Token mint error", error);
+    throw error;
+  }
+
+}
+
+
