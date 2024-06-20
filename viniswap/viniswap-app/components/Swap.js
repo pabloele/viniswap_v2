@@ -29,13 +29,19 @@ import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import SwapField from "./SwapField";
 import TransactionStatus from "./TransactionStatus";
 
-import { DEFAULT_VALUE, WETH, MTB24 } from "../utils/SupportedCoins";
+import {
+  DEFAULT_VALUE,
+  WETH,
+  MTB24,
+  getCoinAddress,
+} from "../utils/SupportedCoins";
 import { toEth, toWei } from "../utils/ether-utils";
-import { useAccount  } from "wagmi";
+import { useAccount } from "wagmi";
 import { Toaster } from "react-hot-toast";
 import NavItems from "./NavItems";
 import SwapOptions from "./swapOptions";
 import useSwaps from "../hooks/useSwaps";
+import { pairIsWhitelisted } from "../utils/pools-utils";
 
 const Swap = () => {
   const { address } = useAccount();
@@ -67,9 +73,19 @@ const Swap = () => {
   const [sourceValue, setSourceValue] = useState();
   const [destValue, setDestValue] = useState();
   const [transactionMessage, setTransactionMessage] = useState("");
+
   useEffect(() => {
+    const isWhiteListed = pairIsWhitelisted(
+      getCoinAddress(srcToken),
+      getCoinAddress(destToken)
+    );
+
     if (!address) setSwapBtnText(CONNECT_WALLET);
-    else if (srcToken === DEFAULT_VALUE || destToken === DEFAULT_VALUE)
+    else if (
+      srcToken === DEFAULT_VALUE ||
+      destToken === DEFAULT_VALUE ||
+      !isWhiteListed
+    )
       setSwapBtnText(SELECT_PAIR);
     else if (
       address &&
