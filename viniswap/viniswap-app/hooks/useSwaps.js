@@ -2,8 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { DEFAULT_VALUE, WETH, getCoinAddress } from "../utils/SupportedCoins";
 import { ENTER_AMOUNT, defaultSlippage } from "../utils/swap-utils";
 import { getPrice, getTokenPrice } from "../utils/queries";
+import { useNetwork } from "wagmi";
+import toast from "react-hot-toast";
 
 const useSwaps = () => {
+  const { chain } = useNetwork();
   const [srcToken, setSrcToken] = useState(WETH);
   const [destToken, setDestToken] = useState(DEFAULT_VALUE);
   const [inputValue, setInputValue] = useState();
@@ -38,6 +41,17 @@ const useSwaps = () => {
   };
 
   useEffect(() => {
+    const checkNetwork = async () => {
+      if (chain?.id !== 11155420) {
+        try {
+          await switchNetwork(11155420);
+        } catch (error) {
+          toast.error("Please switch to the Op Sepolia network");
+        }
+      }
+    };
+
+    checkNetwork();
     const fetchPrice = async (inToken, outToken) => {
       console.log(inToken, outToken);
       const address0 = getCoinAddress(inToken);
@@ -48,8 +62,9 @@ const useSwaps = () => {
       setPrice(relativePrices);
     };
 
-    if (srcToken && destToken) fetchPrice(srcToken, destToken);
-  }, [srcToken, destToken]);
+    if (srcToken && destToken && chain?.id === 11155420)
+      fetchPrice(srcToken, destToken);
+  }, [srcToken, destToken, chain]);
 
   return {
     srcToken,

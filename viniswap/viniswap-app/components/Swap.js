@@ -17,6 +17,7 @@ import {
   INCREASE_ALLOWANCE,
   SELECT_PAIR,
   SWAP,
+  SWITCH_NETWORK,
   getSwapBtnClassName,
   notifyError,
   notifySuccess,
@@ -36,15 +37,17 @@ import {
   getCoinAddress,
 } from "../utils/SupportedCoins";
 import { toEth, toWei } from "../utils/ether-utils";
-import { useAccount } from "wagmi";
-import { Toaster } from "react-hot-toast";
+import { useAccount, useNetwork } from "wagmi";
+import toast, { Toaster } from "react-hot-toast";
 import NavItems from "./NavItems";
 import SwapOptions from "./swapOptions";
 import useSwaps from "../hooks/useSwaps";
 import { pairIsWhitelisted } from "../utils/pools-utils";
+import { switchNetwork } from "../utils/bridge-utils";
 
 const Swap = () => {
   const { address } = useAccount();
+  const { chain } = useNetwork();
   const { openConnectModal } = useConnectModal();
   const {
     srcToken,
@@ -74,6 +77,20 @@ const Swap = () => {
   const [destValue, setDestValue] = useState();
   const [transactionMessage, setTransactionMessage] = useState("");
 
+  // useEffect(() => {
+  //   const checkNetwork = async () => {
+  //     if (chain?.id !== 11155420) {
+  //       try {
+  //         await switchNetwork(11155420);
+  //       } catch (error) {
+  //         toast.error("Please switch to the Op Sepolia network");
+  //       }
+  //     }
+  //   };
+
+  //   checkNetwork();
+  // }, [chain]);
+
   useEffect(() => {
     const isWhiteListed = pairIsWhitelisted(
       getCoinAddress(srcToken),
@@ -81,6 +98,7 @@ const Swap = () => {
     );
 
     if (!address) setSwapBtnText(CONNECT_WALLET);
+    else if (chain?.id !== 11155420) setSwapBtnText(SWITCH_NETWORK);
     else if (
       srcToken === DEFAULT_VALUE ||
       destToken === DEFAULT_VALUE ||

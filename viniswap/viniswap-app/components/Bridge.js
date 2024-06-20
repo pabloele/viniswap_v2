@@ -17,14 +17,6 @@ import { switchNetwork } from "../utils/bridge-utils";
 import { Modal } from "@nextui-org/react";
 import { Oval } from "react-loader-spinner";
 const Bridge = () => {
-  //VERIFICAR QUE EL USUARIO TENGA LA CANTIDAD NECESARIA
-  //VERIFICAR QUE EL USUARIO TENGA EL SALDO NECESARIO PARA HACER EL BURN
-  //QUEMAR EL TOKEN EN LA RED ETH
-  //CONFIRMAR EL QUEMADO DEL TOKEN
-  //VERIFICAR QUE EL USUARIO TENGA EL SALDO NECESARIO PARA HACER EL BURN RED OP
-  //MINTEAR EL NUEVO TOKEN EN LA RED DE OP
-  //CONFIRMAR MINT
-  //CUANDO EL USUARIO QUEMA EL TOKEN EN LA BASE DE DATOS SE DEBE GUARDAR EL REGISTRO DEL BURN
   const { chain } = useNetwork();
   const [steps, setSteps] = useState("step1");
   const [tokenAddress, setTokenAddress] = useState(tokens[0].address);
@@ -41,9 +33,8 @@ const Bridge = () => {
   useEffect(() => {
     const checkNetwork = async () => {
       if (chain?.id !== 11155111 && steps !== "step3" && steps !== "step4") {
-        // Verificar si la red actual no es Sepolia
         try {
-          await switchNetwork(11155111); // Cambiar a la red Sepolia
+          await switchNetwork(11155111);
         } catch (error) {
           toast.error("Please switch to the Sepolia network");
         }
@@ -76,7 +67,19 @@ const Bridge = () => {
   const requestBridge = async () => {
     setLoading(true);
     setSteps("step1");
+
     setOpen(true);
+    const checkNetwork = async () => {
+      if (chain?.id !== 11155111) {
+        try {
+          await switchNetwork(11155111);
+        } catch (error) {
+          toast.error("Please switch to the Sepolia network");
+        }
+      }
+    };
+
+    checkNetwork();
     try {
       if (amountTokens > balance) {
         toast.error("Insufficient balance");

@@ -9,6 +9,7 @@ export const SELECT_PAIR = "Select a valid pair";
 export const ADD_OR_REMOVE_LIQUIDITY = "Add or remove liquidity";
 export const CONFIRM = "Confirm";
 export const CONNECT_WALLET = "Connect wallet";
+export const SWITCH_NETWORK = "Switch to OP sepolia network";
 export const SWAP = "Swap";
 export const defaultSlippage = 10;
 
