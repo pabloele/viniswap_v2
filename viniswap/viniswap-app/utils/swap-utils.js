@@ -11,7 +11,7 @@ export const CONFIRM = "Confirm";
 export const CONNECT_WALLET = "Connect wallet";
 export const SWITCH_NETWORK = "Switch to OP sepolia network";
 export const SWAP = "Swap";
-export const defaultSlippage = 10;
+export const defaultSlippage = 20;
 
 export const notifyError = (msg) => toast.error(msg, { duration: 6000 });
 export const notifySuccess = () => toast.success("Transaction completed.");

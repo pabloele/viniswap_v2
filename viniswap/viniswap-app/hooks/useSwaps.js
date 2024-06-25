@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { DEFAULT_VALUE, WETH, getCoinAddress } from "../utils/SupportedCoins";
 import { ENTER_AMOUNT, defaultSlippage } from "../utils/swap-utils";
 import { getPrice, getTokenPrice } from "../utils/queries";
-import { useNetwork } from "wagmi";
+import { useAccount, useNetwork } from "wagmi";
 import toast from "react-hot-toast";
 
 const useSwaps = () => {
+  const { address } = useAccount();
   const { chain } = useNetwork();
   const [srcToken, setSrcToken] = useState(WETH);
   const [destToken, setDestToken] = useState(DEFAULT_VALUE);
@@ -46,7 +47,7 @@ const useSwaps = () => {
         try {
           await switchNetwork(11155420);
         } catch (error) {
-          toast.error("Please switch to the Op Sepolia network");
+          if (address) toast.error("Please switch to the Op Sepolia network");
         }
       }
     };

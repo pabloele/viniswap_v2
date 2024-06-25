@@ -77,20 +77,6 @@ const Swap = () => {
   const [destValue, setDestValue] = useState();
   const [transactionMessage, setTransactionMessage] = useState("");
 
-  // useEffect(() => {
-  //   const checkNetwork = async () => {
-  //     if (chain?.id !== 11155420) {
-  //       try {
-  //         await switchNetwork(11155420);
-  //       } catch (error) {
-  //         toast.error("Please switch to the Op Sepolia network");
-  //       }
-  //     }
-  //   };
-
-  //   checkNetwork();
-  // }, [chain]);
-
   useEffect(() => {
     const isWhiteListed = pairIsWhitelisted(
       getCoinAddress(srcToken),
@@ -185,7 +171,9 @@ const Swap = () => {
         setTransactionMessage(`Step 1/4: Depositing ETH...`);
         setTxPending(true);
 
-        const wrapReceipt = await wrapEth(inputValue * (1 + slippage / 100));
+        const slippageMultiplier = (slippage + 100) / 100;
+        console.log(slippageMultiplier);
+        const wrapReceipt = await wrapEth(inputValue * slippageMultiplier);
         console.log("eth wrapped succesfully", wrapReceipt);
 
         const allowance = await wethAllowance();
@@ -194,7 +182,7 @@ const Swap = () => {
           (prev) => `${prev}done.<br />Step 2/4: Granting WETH allowance...`
         );
         const receipt = await increaseWethAllowance(
-          (inputValue * (100 + slippage)) / 100
+          inputValue * slippageMultiplier
         );
 
         await receipt.wait();
